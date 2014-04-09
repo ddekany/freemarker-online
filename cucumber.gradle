@@ -1,0 +1,42 @@
+configurations {
+    cucumberRuntime {
+        extendsFrom testRuntime
+    }
+}
+
+task cucumber(dependsOn: 'cucumberJar') {
+    def jsonOut = "json:${project.projectDir}/build/cucumber/cucumber.json"
+
+    doLast {
+        javaexec {
+            main = "cucumber.api.cli.Main"
+            classpath = configurations.cucumberRuntime
+            jvmArgs '-Xms256m', '-XX:MaxPermSize=256m'
+            args = ['--format', 'pretty','-f', jsonOut, '--glue', 'com.kenshoo.cucumber',
+                    'src/test/resources/com/kenshoo/cucumber/'
+            ]
+        }
+    }
+}
+
+
+task cucumberJar (type:Jar) {
+    from sourceSets.test.output
+    from sourceSets.main.resources
+    destinationDir = file("${project.projectDir}/build/cucumber")
+    baseName = "cucumber"
+}
+
+
+
+dependencies {
+    /*
+   In order to work around a really flagrant bug ( http://issues.gradle.org/browse/GRADLE-732 )
+   You have to create a configuration that includes the jar.archivePath (the jar.archivePath is created by the java plugin)
+   and give it the same name as the cucumberRuntime configuration, or name it something different and have the cucumberRuntime
+   configuration extend from it as well.
+   VERY ANNOYING BUG
+    */
+   cucumberRuntime files("${cucumberJar.archivePath}") + sourceSets.main.output // We add the main source set so that the PathMatchingResourcePatternResolver will find the YML file
+                                                                                // When using classpath*:*.yml pattern - Java will only search for the file in expanded directories
+}

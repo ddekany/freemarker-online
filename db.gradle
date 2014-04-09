@@ -1,0 +1,64 @@
+def testConfigLocation = "${project.projectDir}/src/test/resources/databaseTest.properties"
+
+task genDBProps << {
+    def fileLocation = "${project.projectDir}/src/main/resources/database.properties"
+    logger.info("preparing database propery file in:" + fileLocation)
+    createFolder(fileLocation) //creates file
+    createDatabaseProperties(fileLocation)
+}
+
+task genTestDBProps << {
+    logger.info "preparing *****TEST***** database propery file in:" + testConfigLocation
+    createFolder(testConfigLocation) //creates file
+    createDatabaseProperties(testConfigLocation)
+}
+
+def createDatabaseProperties(propertyFile) {
+    java.util.Properties props = new java.util.Properties()
+    if (project.hasProperty("dbUser")) props.setProperty("database.user", dbUser)
+    if (project.hasProperty("dbPass")) props.setProperty("database.password", dbPass)
+
+    // Not needed for DB config - setting the URL is enough
+    //    props.setProperty("database.dbName", dbName)
+    //    props.setProperty("database.dbHost", dbHost)
+    props.setProperty("database.url", "jdbc:mysql://${dbHost}:3306/${dbName}?createDatabaseIfNotExist=true")
+
+    props.store(new java.io.FileOutputStream(propertyFile), "Kenshoo generated datasource properties DO NOT Commit");
+}
+
+def createFolder(path) {
+    File ds = new File(path)
+    if (!ds.exists()) {
+        ds.createNewFile()
+    }
+}
+
+
+task migrateDB(type: Exec, dependsOn: 'fatJar') {
+    commandLine = ['java', '-jar', jarName, 'db', 'migrate', yml]
+    logger.info(commandLine.toString())
+}
+
+task clearDB(type: Exec, dependsOn: 'fatJar') {
+    commandLine = ['java', '-jar', jarName, 'db', 'drop-all','--confirm-delete-everything', yml]
+    logger.info(commandLine.toString())
+}
+
+task migrateTestDB(type: Exec, dependsOn: 'fatJar') {
+    File testProp = new File(testConfigLocation);
+    if(!testProp.exists()){
+        logger.error("----- No Test DB config found---- make sure you run genTestDBProps")
+    }else{
+        def params =[]
+        testProp.text.eachLine{ line ->
+            if (!line.startsWith("#")){
+                def unescapedLine = line.replace("\\:",":").replace("\\=","=")
+                params.add("-Ddw.$unescapedLine")
+            }
+        }
+        commandLine = ['java','-jar', jarName, 'db', 'migrate', yml]
+        commandLine = commandLine.plus(1,params)
+        logger.info(commandLine.toString())
+    }
+}
+

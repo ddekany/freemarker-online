@@ -1,0 +1,18 @@
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+databaseTest.properties
+.settings/
+.classpath
+.project
+workspace/
+*.iml
+*.ipr
+*.iws
+build/
+out/
+.gradle/
