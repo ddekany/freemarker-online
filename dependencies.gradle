@@ -6,6 +6,7 @@ ext.cucu_version = "1.1.4";
 project.libraries = [
         dropwizard: "com.yammer.dropwizard:dropwizard-core:$dw_version",
         dropwizard_client: "com.yammer.dropwizard:dropwizard-client:$dw_version",
+        dropwizrd_views: "com.yammer.dropwizard:dropwizard-views:$dw_version",
         guava: 'com.google.guava:guava:13.0.1',
         jersey_core: 'com.sun.jersey:jersey-core:1.1.4.1',
 
@@ -27,14 +28,6 @@ project.libraries = [
         // Spring test
         springTest: "org.springframework:spring-test:$spring_version",
 
-        // DB
-        dropwizard_migrations: "com.yammer.dropwizard:dropwizard-migrations:$dw_version",
-        mysql:'mysql:mysql-connector-java:5.1.6',
-        tomcatJdbc: "org.apache.tomcat:tomcat-jdbc:7.0.27",        // Use tomcat JDBC pool
-        springJDBC: "org.springframework:spring-jdbc:$spring_version",
-        spring_orm: "org.springframework:spring-orm:$spring_version",
-        spring_transaction: "org.springframework:spring-tx:$spring_version",
-        jdbi:'org.jdbi:jdbi:2.49',
 
         //Test libs
         dropwizard_testing: "com.yammer.dropwizard:dropwizard-testing:$dw_version",
@@ -45,5 +38,7 @@ project.libraries = [
         cucumberJava: "info.cukes:cucumber-java:$cucu_version",
         cucumberJUnit: "info.cukes:cucumber-junit:$cucu_version",
         cucumberCore: "info.cukes:cucumber-core:$cucu_version",
-        cucumberSpring: "info.cukes:cucumber-spring:$cucu_version"
+        cucumberSpring: "info.cukes:cucumber-spring:$cucu_version",
+
+        freemarker: 'org.freemarker:freemarker:2.3.20',
 ]

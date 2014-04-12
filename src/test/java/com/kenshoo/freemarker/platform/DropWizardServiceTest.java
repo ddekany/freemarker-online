@@ -1,7 +1,6 @@
 package com.kenshoo.freemarker.platform;
 
 import com.google.common.io.Resources;
-import com.kenshoo.freemarker.dropwizard.ApplicationConfiguration;
 import com.kenshoo.freemarker.dropwizard.ApplicationStartup;
 import com.yammer.dropwizard.testing.junit.DropwizardServiceRule;
 import org.junit.ClassRule;
@@ -16,7 +15,7 @@ import org.junit.rules.TestRule;
  */
 public class DropWizardServiceTest {
     @ClassRule
-    public static TestRule testRule = new DropwizardServiceRule<ApplicationConfiguration>(ApplicationStartup.class,
+    public static TestRule testRule = new DropwizardServiceRule<>(ApplicationStartup.class,
             Resources.getResource("freemarker-online.yml").getPath());
 
 

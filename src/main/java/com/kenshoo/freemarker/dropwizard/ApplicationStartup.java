@@ -15,39 +15,27 @@
 */
 package com.kenshoo.freemarker.dropwizard;
 
+import com.berico.fallwizard.SpringConfiguration;
 import com.berico.fallwizard.SpringService;
 import com.yammer.dropwizard.config.Bootstrap;
-import com.yammer.dropwizard.config.Environment;
-import com.yammer.dropwizard.db.DatabaseConfiguration;
-import com.yammer.dropwizard.migrations.MigrationsBundle;
+import com.yammer.dropwizard.views.ViewBundle;
 
 /**
  * User: dekely
  * Date: 3/17/13
  * Time: 10:39 AM
  */
-public class ApplicationStartup extends SpringService<ApplicationConfiguration> {
+public class ApplicationStartup extends SpringService<SpringConfiguration> {
 
     public static void main(String[] args) throws Exception {
         new ApplicationStartup().run(args);
     }
 
     @Override
-    public void initialize(Bootstrap<ApplicationConfiguration> bootstrap) {
+    public void initialize(Bootstrap<SpringConfiguration> bootstrap) {
         bootstrap.setName("freemarker-online");
-        bootstrap.addBundle(new MigrationsBundle<ApplicationConfiguration>() {
-            @Override
-            public DatabaseConfiguration getDatabaseConfiguration(ApplicationConfiguration configuration) {
-                return configuration.getDatabaseConfiguration();
-            }
-        });
+        bootstrap.addBundle(new ViewBundle());
 
     }
 
-    @Override
-    public void run(ApplicationConfiguration configuration, Environment environment) throws Exception {
-        // This is used to allow for overriding/using values from property files
-        configuration.setSystemProperties();
-        super.run(configuration, environment);
-    }
 }
