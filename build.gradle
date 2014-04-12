@@ -7,7 +7,6 @@ project.jarName = "$rootDir/build/libs/${projectName}-${project.version}.jar"
 
 
 apply from: "intellij.gradle"
-apply from: "db.gradle"
 apply from: "${rootDir}/dependencies.gradle"
 apply plugin: 'maven'
 apply plugin: 'java'
@@ -31,6 +30,7 @@ buildscript {
 
 dependencies {
     compile libraries.dropwizard
+    compile libraries.dropwizrd_views
     compile libraries.springCore
     compile libraries.springContext
     compile libraries.springContextSupport
@@ -39,14 +39,6 @@ dependencies {
     compile libraries.springTransaction
     compile libraries.springBeans
     compile libraries.fallwizard
-    compile libraries.dropwizard_migrations
-
-    // database context
-    compile libraries.mysql
-    compile libraries.tomcatJdbc
-    compile libraries.springJDBC
-    compile libraries.springTransaction
-    compile libraries.jdbi
 
     testCompile libraries.dropwizard_testing
     testCompile libraries.springTest
@@ -58,7 +50,8 @@ dependencies {
     testCompile libraries.cucumberJUnit
     testCompile libraries.cucumberCore
     testCompile libraries.cucumberSpring
-    testCompile libraries.springJDBC
+
+    compile libraries.freemarker
 
 }
 

@@ -2,15 +2,6 @@
 # Application Contexts to Load.
 applicationContext: ['classpath*:/spring/*-context.xml']
 
-# Should Spring Security be used?
-useSpringSecurity: false
-
-database:
-  driverClass: com.mysql.jdbc.Driver
-  url: jdbc:mysql://localhost:3306/freemarker_online?createDatabaseIfNotExist=true
-  user: root
-  password: root
-
 logging:
        # Settings for logging to a file.
        file:
