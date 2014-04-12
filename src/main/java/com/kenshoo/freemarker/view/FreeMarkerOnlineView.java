@@ -8,7 +8,7 @@ import com.yammer.dropwizard.views.View;
  * Date: 4/11/14
  * Time: 12:23 PM
  */
-public class FreeMarkerOnlineView extends View{
+public class FreeMarkerOnlineView extends View {
 
     public FreeMarkerOnlineView() {
         super("/view/freemarker-online.mustache");

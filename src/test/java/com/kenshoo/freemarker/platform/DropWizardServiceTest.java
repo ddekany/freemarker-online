@@ -21,6 +21,6 @@ public class DropWizardServiceTest {
 
     @Test
     public void testServerIsUp() throws Exception {
-        ((DropwizardServiceRule)testRule).getService();
+        ((DropwizardServiceRule) testRule).getService();
     }
 }
