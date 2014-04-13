@@ -24,7 +24,6 @@ public class FreeMarkerService {
     private static final String ERROR_IN_TEMPLATE_PARSING = "Error in Template Parsing";
     private static final String ERROR_IN_TEMPLATE_EVALUATION = "Error in Template evaluation";
     private final Logger logger = LoggerFactory.getLogger(FreeMarkerService.class);
-    private final FreeMarkerServiceResponseBuilder freeMarkerServiceResponseBuilder = new FreeMarkerServiceResponseBuilder();
 
     public FreeMarkerServiceResponse calculateFreeMarkerTemplate(String templateText, Map<String, String> params) {
         Configuration freeMarkerConfig = new Configuration();
@@ -45,13 +44,13 @@ public class FreeMarkerService {
             throw new RuntimeException(e);
         }
         String result = writer.toString();
-        return freeMarkerServiceResponseBuilder.successfulResponse(result);
+        return new FreeMarkerServiceResponse.Builder().successfulResponse(result);
     }
 
     private FreeMarkerServiceResponse createExceptionalResponse(Exception e, String msg) {
         logger.info(msg);
         logger.debug(msg, e);
-        return freeMarkerServiceResponseBuilder.errorResponse(e.getMessage());
+        return new FreeMarkerServiceResponse.Builder().errorResponse(e.getMessage());
     }
 
 }

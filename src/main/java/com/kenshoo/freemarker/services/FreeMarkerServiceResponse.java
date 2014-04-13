@@ -12,7 +12,7 @@ public class FreeMarkerServiceResponse {
     private String errorReason;
 
 
-    public FreeMarkerServiceResponse(String result, boolean succeed, String errorReason) {
+    private FreeMarkerServiceResponse(String result, boolean succeed, String errorReason) {
         this.result = result;
         this.succeed = succeed;
         this.errorReason = errorReason;
@@ -28,5 +28,15 @@ public class FreeMarkerServiceResponse {
 
     public String getErrorReason() {
         return errorReason;
+    }
+
+    public static class Builder {
+        public FreeMarkerServiceResponse successfulResponse(String result){
+            return new FreeMarkerServiceResponse(result,true,"");
+        }
+
+        public FreeMarkerServiceResponse errorResponse(String errorReason){
+            return new FreeMarkerServiceResponse("",false,errorReason);
+        }
     }
 }

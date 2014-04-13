@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
  */
 public class FreeMarkerServiceResponseBuilderTest {
 
-    public FreeMarkerServiceResponseBuilder freeMarkerServiceResponseBuilder = new FreeMarkerServiceResponseBuilder();
+    public FreeMarkerServiceResponse.Builder freeMarkerServiceResponseBuilder = new FreeMarkerServiceResponse.Builder();
 
     @Test
     public void testSuccessResult() {
