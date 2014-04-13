@@ -12,7 +12,7 @@ task cucumber(dependsOn: 'cucumberJar') {
             main = "cucumber.api.cli.Main"
             classpath = configurations.cucumberRuntime
             jvmArgs '-Xms256m', '-XX:MaxPermSize=256m'
-            args = ['--format', 'pretty','-f', jsonOut, '--glue', 'com.kenshoo.cucumber',
+            args = ['--format', 'pretty', '-f', jsonOut, '--glue', 'com.kenshoo.cucumber',
                     'src/test/resources/com/kenshoo/cucumber/'
             ]
         }
@@ -20,7 +20,7 @@ task cucumber(dependsOn: 'cucumberJar') {
 }
 
 
-task cucumberJar (type:Jar) {
+task cucumberJar(type: Jar) {
     from sourceSets.test.output
     from sourceSets.main.resources
     destinationDir = file("${project.projectDir}/build/cucumber")
@@ -37,6 +37,6 @@ dependencies {
    configuration extend from it as well.
    VERY ANNOYING BUG
     */
-   cucumberRuntime files("${cucumberJar.archivePath}") + sourceSets.main.output // We add the main source set so that the PathMatchingResourcePatternResolver will find the YML file
-                                                                                // When using classpath*:*.yml pattern - Java will only search for the file in expanded directories
+    cucumberRuntime files("${cucumberJar.archivePath}") + sourceSets.main.output // We add the main source set so that the PathMatchingResourcePatternResolver will find the YML file
+    // When using classpath*:*.yml pattern - Java will only search for the file in expanded directories
 }

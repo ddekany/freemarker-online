@@ -10,5 +10,6 @@
     <import resource="classpath*:spring/*-context.xml"/>
     <!-- Make sure to override with test values -->
     <import resource="classpath:spring/test-bootstrap-datasource-context.xml"/>
-    <context:component-scan base-package="com.kenshoo.cucumber"/>      <!-- This is required for using @Scope("cucumber-glue") in cucumber tests (i.e. using scenario scoped varaibles ) -->
+    <context:component-scan base-package="com.kenshoo.cucumber"/>
+    <!-- This is required for using @Scope("cucumber-glue") in cucumber tests (i.e. using scenario scoped varaibles ) -->
 </beans>
