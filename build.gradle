@@ -54,6 +54,8 @@ dependencies {
 
     compile libraries.freemarker
 
+    testCompile libraries.selenium_java
+
 }
 
 compileJava {
