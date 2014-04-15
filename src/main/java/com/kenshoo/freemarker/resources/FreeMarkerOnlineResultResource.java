@@ -6,10 +6,7 @@ import com.kenshoo.freemarker.view.FreeMarkerOnlineView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.StringReader;
@@ -32,6 +29,7 @@ public class FreeMarkerOnlineResultResource {
 
     @POST
     @Produces(MediaType.TEXT_HTML)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public FreeMarkerOnlineView formResult(@FormParam("template") String templateText, @FormParam("params") String params) {
         Properties properties = parseProperties(params);
         Map<String, String> templateParams = propertiesToMap(properties);
