@@ -41,4 +41,5 @@ project.libraries = [
         cucumberSpring: "info.cukes:cucumber-spring:$cucu_version",
 
         freemarker: 'org.freemarker:freemarker:2.3.20',
+        selenium_java: 'org.seleniumhq.selenium:selenium-java:2.41.0',
 ]
