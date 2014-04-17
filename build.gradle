@@ -10,6 +10,7 @@ apply from: "intellij.gradle"
 apply from: "${rootDir}/dependencies.gradle"
 apply plugin: 'maven'
 apply plugin: 'java'
+apply plugin: 'jacoco'
 apply plugin: 'project-report'
 apply plugin: 'fatjar'
 apply plugin: 'fpm-packaging'
