@@ -7,16 +7,17 @@
         <form action="result" method="post" class="pure-form pure-form-stacked" style="padding:15px;">
          <fieldset>
             <legend>Free Marker Simulator</legend>
-            <label for="template">FreeMarker Template</label>
-            <input type="text" name="template" size="150" class="pure-input-rounded" value="{{template}}"/>
-            <label for="params">Enter your params in Java Properties Format</label>
-            <textarea name="params" rows="10" cols="150" class="pure-input-rounded">{{params}}</textarea>
+            <br/>
+            <input type="text" name="template" size="150" class="pure-input-rounded" value="{{template}}" placeholder="Enter your Freemarker Template"/>
+            <br/>
+            <textarea name="params" rows="10" cols="150" class="pure-input-rounded" placeholder="Enter a List of Parameters in Java Properties Format (key=value)">{{params}}</textarea>
             <br/>
             <input id="eval-btn" type="submit" value="Evaluate" class="pure-button pure-button-primary"/>
         </form>
         <br/>
         <br/>
         <textarea id="result" rows="10" cols="150" class="pure-input-rounded">{{result}}</textarea>
+        <a class="pure-button pure-button-active" href="http://freemarker.org/docs/ref_builtins_string.html" target="_blank">Take a look on FreeMarker String Functions</a>
         </fieldset>
     </body>
 
