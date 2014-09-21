@@ -25,17 +25,4 @@ import com.yammer.dropwizard.views.ViewBundle;
  * Date: 3/17/13
  * Time: 10:39 AM
  */
-public class ApplicationStartup extends SpringService<SpringConfiguration> {
-
-    public static void main(String[] args) throws Exception {
-        new ApplicationStartup().run(args);
-    }
-
-    @Override
-    public void initialize(Bootstrap<SpringConfiguration> bootstrap) {
-        bootstrap.setName("freemarker-online");
-        bootstrap.addBundle(new ViewBundle());
-
-    }
-
-}
+public class ApplicationStartup extends 
