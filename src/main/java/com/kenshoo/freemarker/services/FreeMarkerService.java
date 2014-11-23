@@ -1,5 +1,6 @@
 package com.kenshoo.freemarker.services;
 
+import freemarker.core.TemplateClassResolver;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -27,6 +28,7 @@ public class FreeMarkerService {
 
     public FreeMarkerServiceResponse calculateFreeMarkerTemplate(String templateText, Map<String, String> params) {
         Configuration freeMarkerConfig = new Configuration();
+        freeMarkerConfig.setNewBuiltinClassResolver(TemplateClassResolver.ALLOWS_NOTHING_RESOLVER);
         StringWriter writer = new StringWriter();
         Template template;
 
