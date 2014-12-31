@@ -22,7 +22,6 @@ buildscript {
     dependencies {
         classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
         classpath 'com.kenshoo:gradle-fpm:+'
-        classpath 'com.kenshoo.watership:executor-gradle-plugin:0.2.5'
     }
 }
 
