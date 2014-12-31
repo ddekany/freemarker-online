@@ -14,7 +14,6 @@ apply plugin: 'jacoco'
 apply plugin: 'project-report'
 apply plugin: 'fatjar'
 apply plugin: 'fpm-packaging'
-apply from: "cucumber.gradle"
 
 buildscript {
     repositories {
@@ -46,12 +45,6 @@ dependencies {
     testCompile libraries.junit
     testCompile libraries.mockito
     testCompile libraries.hamcrest;
-
-    // cucumber
-    testCompile libraries.cucumberJava
-    testCompile libraries.cucumberJUnit
-    testCompile libraries.cucumberCore
-    testCompile libraries.cucumberSpring
 
     compile libraries.freemarker
 
