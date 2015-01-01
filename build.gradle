@@ -14,7 +14,6 @@ apply plugin: 'jacoco'
 apply plugin: 'project-report'
 apply plugin: 'fatjar'
 apply plugin: 'fpm-packaging'
-apply from: "cucumber.gradle"
 
 buildscript {
     repositories {
@@ -23,7 +22,6 @@ buildscript {
     dependencies {
         classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
         classpath 'com.kenshoo:gradle-fpm:+'
-        classpath 'com.kenshoo.watership:executor-gradle-plugin:0.2.5'
     }
 }
 
@@ -46,12 +44,6 @@ dependencies {
     testCompile libraries.junit
     testCompile libraries.mockito
     testCompile libraries.hamcrest;
-
-    // cucumber
-    testCompile libraries.cucumberJava
-    testCompile libraries.cucumberJUnit
-    testCompile libraries.cucumberCore
-    testCompile libraries.cucumberSpring
 
     compile libraries.freemarker
 

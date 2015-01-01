@@ -1,7 +1,7 @@
 project.ext.set("libraries", "")
 ext.dw_version = "0.6.2";
 ext.spring_version = "3.2.2.RELEASE";
-ext.cucu_version = "1.1.4";
+
 
 project.libraries = [
         dropwizard: "com.yammer.dropwizard:dropwizard-core:$dw_version",
@@ -33,13 +33,8 @@ project.libraries = [
         junit: 'junit:junit-dep:4.11',
         mockito: 'org.mockito:mockito-all:1.9.0',
         hamcrest: 'org.hamcrest:hamcrest-library:1.3',
-
-        // cucumber
-        cucumberJava: "info.cukes:cucumber-java:$cucu_version",
-        cucumberJUnit: "info.cukes:cucumber-junit:$cucu_version",
-        cucumberCore: "info.cukes:cucumber-core:$cucu_version",
-        cucumberSpring: "info.cukes:cucumber-spring:$cucu_version",
+        selenium_java: 'org.seleniumhq.selenium:selenium-java:2.41.0',
 
         freemarker: 'org.freemarker:freemarker:2.3.20',
-        selenium_java: 'org.seleniumhq.selenium:selenium-java:2.41.0',
+
 ]
