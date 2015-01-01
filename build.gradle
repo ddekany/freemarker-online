@@ -92,7 +92,9 @@ task stageArtifacts(type: Copy) {
 
 task stageStartScript << {
     new File(stagingDir, "opt/${projectName}/start").withWriter("UTF-8") {
-        it.println "#!/usr/bin/env sh\nset -e\njava \$* -jar ${project.name}-${project.version}.jar db migrate ${project.name}.yml &\nexec java \$* -jar ${project.name}-${project.version}.jar server ${project.name}.yml"
+        it.println "#!/usr/bin/env sh\n" +
+                " set -e\n" +
+                " exec java \$* -jar ${project.name}-${project.version}.jar server ${project.name}.yml"
     }
 }
 
