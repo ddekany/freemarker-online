@@ -16,3 +16,4 @@ workspace/
 build/
 out/
 .gradle/
+/bin/
