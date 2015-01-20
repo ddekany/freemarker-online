@@ -22,8 +22,8 @@ import java.util.UUID;
 @Service
 public class FreeMarkerService {
 
-    private static final String ERROR_IN_TEMPLATE_PARSING = "Error in Template Parsing";
-    private static final String ERROR_IN_TEMPLATE_EVALUATION = "Error in Template evaluation";
+    private static final String ERROR_IN_TEMPLATE_PARSING = "Error in template parsing";
+    private static final String ERROR_IN_TEMPLATE_EVALUATION = "Error in template evaluation";
     private final Logger logger = LoggerFactory.getLogger(FreeMarkerService.class);
 
     public FreeMarkerServiceResponse calculateFreeMarkerTemplate(String templateText, Map<String, String> params) {
