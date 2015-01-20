@@ -24,9 +24,6 @@ public class YamlPropertiesPersister implements PropertiesPersister {
      * We want to traverse map representing Yaml object and each time we find String=String pair we want to
      * save it as Property. As we are going deeper into map we generate compound key as path-like String
      *
-     * @param props
-     * @param reader
-     * @throws IOException
      * @see org.springframework.util.PropertiesPersister#load(java.util.Properties, java.io.Reader)
      */
     @Override
@@ -37,10 +34,6 @@ public class YamlPropertiesPersister implements PropertiesPersister {
         assignProperties(props, map, null);
     }
 
-    /**
-     * @param props
-     * @param map
-     */
     public void assignProperties(Properties props, Map<String, Object> map, String path) {
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
