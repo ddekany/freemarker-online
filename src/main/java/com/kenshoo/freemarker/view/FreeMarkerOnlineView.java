@@ -2,6 +2,8 @@ package com.kenshoo.freemarker.view;
 
 import com.yammer.dropwizard.views.View;
 
+import freemarker.template.Configuration;
+
 /**
  * Created with IntelliJ IDEA.
  * User: nir
@@ -44,4 +46,8 @@ public class FreeMarkerOnlineView extends View {
     public String getParams(){
             return params;
         }
+    
+    public String getFreeMarkerVersion() {
+        return Configuration.getVersion().toString();
+    }
 }
