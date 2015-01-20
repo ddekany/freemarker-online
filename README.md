@@ -8,7 +8,7 @@ For a deployed version of this tool you can visit http://freemarker-online.kensh
 Development Instuctions
 ------------------------
 * Clone the repository to a local directory
-* Currently the project has an old dependency, "com.berico:fallwizard:1.1.1", which is can't be found in any public repositories I know of. Thus, you have to Maven-install it locally:
+* Currently the project has an old dependency, "com.berico:fallwizard:1.1.1", which can't be found in any public repositories I know of. Thus, you have to Maven-install it locally:
   1. Clone https://github.com/Berico-Technologies/Fallwizard.git
   2. Check out this old version: 7ed7803496
   3. `mvn install` it
