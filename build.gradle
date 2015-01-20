@@ -5,7 +5,6 @@ project.version = "0.1.$BUILD_NUMBER"
 project.yml = "$rootDir/src/main/resources/${projectName}.yml"
 project.jarName = "$rootDir/build/libs/${projectName}-${project.version}.jar"
 
-
 apply from: "intellij.gradle"
 apply from: "${rootDir}/dependencies.gradle"
 apply plugin: 'maven'
@@ -14,6 +13,11 @@ apply plugin: 'jacoco'
 apply plugin: 'project-report'
 apply plugin: 'fatjar'
 apply plugin: 'fpm-packaging'
+
+// Because Spring 3 doesn't officially support Java 8, and indeed asm fails with it:
+// Must be after `apply plugin: 'java'`!
+project.sourceCompatibility = "1.7"
+project.targetCompatibility = "1.7"
 
 buildscript {
     repositories {
@@ -25,7 +29,12 @@ buildscript {
     }
 }
 
-
+repositories {
+    mavenCentral()
+    
+    // For com.berico:fallwizard:1.1.1 that must be locally installed; see README.md!
+    mavenLocal()
+}
 
 dependencies {
     compile libraries.dropwizard
