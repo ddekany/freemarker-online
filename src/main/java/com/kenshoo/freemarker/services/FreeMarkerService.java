@@ -1,17 +1,17 @@
 package com.kenshoo.freemarker.services;
 
-import freemarker.core.TemplateClassResolver;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Map;
-import java.util.UUID;
+import freemarker.core.TemplateClassResolver;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,9 +26,14 @@ public class FreeMarkerService {
     private static final String ERROR_IN_TEMPLATE_EVALUATION = "Error in template evaluation";
     private final Logger logger = LoggerFactory.getLogger(FreeMarkerService.class);
 
-    public FreeMarkerServiceResponse calculateFreeMarkerTemplate(String templateText, Map<String, String> params) {
-        Configuration freeMarkerConfig = new Configuration(Configuration.getVersion());
+    private final Configuration freeMarkerConfig;
+    
+    public FreeMarkerService() {
+        freeMarkerConfig = new Configuration(Configuration.getVersion());
         freeMarkerConfig.setNewBuiltinClassResolver(TemplateClassResolver.ALLOWS_NOTHING_RESOLVER);
+    }
+    
+    public FreeMarkerServiceResponse calculateFreeMarkerTemplate(String templateText, Map<String, String> params) {
         StringWriter writer = new StringWriter();
         Template template;
 
