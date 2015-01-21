@@ -29,12 +29,14 @@ import freemarker.template.TemplateExceptionHandler;
 public class FreeMarkerService {
 
     private static final int OUTPUT_LENGTH_LIMIT = 100000;
-    private static final String OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATOR = "\n----------\n"
+    private static final String OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATION = "\n----------\n"
             + "Aborted template processing, as the output length has exceeded the " + OUTPUT_LENGTH_LIMIT
             + " character limit set for this service.";
+    
     private static final String ERROR_IN_TEMPLATE_PARSING = "Error in template parsing";
     private static final String ERROR_IN_TEMPLATE_EVALUATION = "Error in template evaluation";
-    private final Logger logger = LoggerFactory.getLogger(FreeMarkerService.class);
+    
+    private static final Logger logger = LoggerFactory.getLogger(FreeMarkerService.class);
 
     private final Configuration freeMarkerConfig;
     
@@ -48,26 +50,26 @@ public class FreeMarkerService {
     }
     
     public FreeMarkerServiceResponse calculateFreeMarkerTemplate(String templateText, Map<String, String> params) {
-        StringWriter writer = new StringWriter();
         Template template;
-
         try {
             template = new Template(null, templateText, freeMarkerConfig);
         } catch (IOException e) {
             return createExceptionalResponse(e, ERROR_IN_TEMPLATE_PARSING);
         }
+        
+        StringWriter writer = new StringWriter();
         try {
             template.process(params, new LengthLimitedWriter(writer, OUTPUT_LENGTH_LIMIT));
         } catch (WriterLengthLimitExceededException e) {
-            writer.write(OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATOR);
+            writer.write(OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATION);
             // Falls through
         } catch (TemplateException e) {
             return createExceptionalResponse(e, ERROR_IN_TEMPLATE_EVALUATION);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        String result = writer.toString();
-        return new FreeMarkerServiceResponse.Builder().successfulResponse(result);
+        
+        return new FreeMarkerServiceResponse.Builder().successfulResponse(writer.toString());
     }
 
     private FreeMarkerServiceResponse createExceptionalResponse(Exception e, String msg) {
