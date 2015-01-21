@@ -27,7 +27,7 @@ public class FreeMarkerService {
     private final Logger logger = LoggerFactory.getLogger(FreeMarkerService.class);
 
     public FreeMarkerServiceResponse calculateFreeMarkerTemplate(String templateText, Map<String, String> params) {
-        Configuration freeMarkerConfig = new Configuration();
+        Configuration freeMarkerConfig = new Configuration(Configuration.getVersion());
         freeMarkerConfig.setNewBuiltinClassResolver(TemplateClassResolver.ALLOWS_NOTHING_RESOLVER);
         StringWriter writer = new StringWriter();
         Template template;
