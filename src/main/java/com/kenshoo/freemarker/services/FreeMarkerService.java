@@ -33,7 +33,7 @@ public class FreeMarkerService {
         Template template;
 
         try {
-            template = new Template(UUID.randomUUID().toString(), templateText, freeMarkerConfig);
+            template = new Template(null, templateText, freeMarkerConfig);
         } catch (IOException e) {
             return createExceptionalResponse(e, ERROR_IN_TEMPLATE_PARSING);
         }
