@@ -1,23 +1,30 @@
  <html>
     <head>
-        <title>Free Marker Online</title>
+        <title>Online FreeMarker Template Tester</title>
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/pure/0.4.2/pure-min.css">
     </head>
     <body>
         <form action="result" method="post" class="pure-form pure-form-stacked" style="padding:15px;">
          <fieldset>
-            <legend>Free Marker Simulator</legend>
+            <legend>Online FreeMarker Template Tester</legend>
             <br/>
-            <input type="text" name="template" size="150" class="pure-input-rounded" value="{{template}}" placeholder="Enter your Freemarker Template"/>
+            <input type="text" name="template" size="150" class="pure-input-rounded" value="{{template}}" placeholder="Enter your Freemarker template"/>
             <br/>
-            <textarea name="params" rows="10" cols="150" class="pure-input-rounded" placeholder="Enter a List of Parameters in Java Properties Format (key=value)">{{params}}</textarea>
+            <textarea name="params" rows="10" cols="150" class="pure-input-rounded" placeholder="Enter a list of parameters in Java Properties format (key=value)">{{params}}</textarea>
             <br/>
             <input id="eval-btn" type="submit" value="Evaluate" class="pure-button pure-button-primary"/>
         </form>
         <br/>
         <br/>
         <textarea id="result" rows="10" cols="150" class="pure-input-rounded">{{result}}</textarea>
-        <a class="pure-button pure-button-active" href="http://freemarker.org/docs/ref_builtins_string.html" target="_blank">Take a look on FreeMarker String Functions</a>
+        <br/>
+        <p>FreeMarker documentation links:
+          <a href="http://freemarker.org/docs/" target="_blank">Table of Contents</a>
+          |
+          <a href="http://freemarker.org/docs/dgui_template_exp.html#exp_cheatsheet" target="_blank">Expression syntax</a>
+          |
+          <a href="http://freemarker.org/docs/ref_builtins_string.html" target="_blank">String&nbsp;manipulation&nbsp;<q>built-ins</q></a>
+        </ul>
         </fieldset>
     </body>
 
