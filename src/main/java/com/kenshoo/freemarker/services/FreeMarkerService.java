@@ -8,6 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.kenshoo.freemarker.util.LengthLimitedWriter;
+import com.kenshoo.freemarker.util.WriterLengthLimitExceededException;
+
 import freemarker.core.TemplateClassResolver;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -22,6 +25,10 @@ import freemarker.template.TemplateException;
 @Service
 public class FreeMarkerService {
 
+    private static final int OUTPUT_LENGTH_LIMIT = 100000;
+    private static final String OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATOR = "\n----------\n"
+            + "Aborted template processing, as the output length has exceeded the " + OUTPUT_LENGTH_LIMIT
+            + " character limit set for this service.";
     private static final String ERROR_IN_TEMPLATE_PARSING = "Error in template parsing";
     private static final String ERROR_IN_TEMPLATE_EVALUATION = "Error in template evaluation";
     private final Logger logger = LoggerFactory.getLogger(FreeMarkerService.class);
@@ -43,10 +50,12 @@ public class FreeMarkerService {
             return createExceptionalResponse(e, ERROR_IN_TEMPLATE_PARSING);
         }
         try {
-            template.process(params, writer);
+            template.process(params, new LengthLimitedWriter(writer, OUTPUT_LENGTH_LIMIT));
+        } catch (WriterLengthLimitExceededException e) {
+            writer.write(OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATOR);
+            // Falls through
         } catch (TemplateException e) {
             return createExceptionalResponse(e, ERROR_IN_TEMPLATE_EVALUATION);
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
