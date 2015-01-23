@@ -2,6 +2,7 @@ package com.kenshoo.freemarker.services;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.kenshoo.freemarker.util.LengthLimitedWriter;
-import com.kenshoo.freemarker.util.WriterLengthLimitExceededException;
+import com.kenshoo.freemarker.util.LengthLimitExceededException;
 
 import freemarker.core.TemplateClassResolver;
 import freemarker.template.Configuration;
@@ -28,10 +29,11 @@ import freemarker.template.TemplateExceptionHandler;
 @Service
 public class FreeMarkerService {
 
-    private static final int OUTPUT_LENGTH_LIMIT = 100000;
+    private static final int DEFAULT_OUTPUT_LENGTH_LIMIT = 100000;
+    
     private static final String OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATION = "\n----------\n"
-            + "Aborted template processing, as the output length has exceeded the " + OUTPUT_LENGTH_LIMIT
-            + " character limit set for this service.";
+            + "Aborted template processing, as the output length has exceeded the {0} character limit set for "
+            + "this service.";
     
     private static final String ERROR_IN_TEMPLATE_PARSING = "Error in template parsing";
     private static final String ERROR_IN_TEMPLATE_EVALUATION = "Error in template evaluation";
@@ -39,6 +41,8 @@ public class FreeMarkerService {
     private static final Logger logger = LoggerFactory.getLogger(FreeMarkerService.class);
 
     private final Configuration freeMarkerConfig;
+    
+    private int outputLengthLimit = DEFAULT_OUTPUT_LENGTH_LIMIT;
     
     public FreeMarkerService() {
         freeMarkerConfig = new Configuration(Configuration.getVersion());
@@ -57,11 +61,13 @@ public class FreeMarkerService {
             return createExceptionalResponse(e, ERROR_IN_TEMPLATE_PARSING);
         }
         
+        boolean resultTruncated = false;
         StringWriter writer = new StringWriter();
         try {
-            template.process(params, new LengthLimitedWriter(writer, OUTPUT_LENGTH_LIMIT));
-        } catch (WriterLengthLimitExceededException e) {
-            writer.write(OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATION);
+            template.process(params, new LengthLimitedWriter(writer, outputLengthLimit));
+        } catch (LengthLimitExceededException e) {
+            writer.write(MessageFormat.format(OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATION, outputLengthLimit));
+            resultTruncated = true;
             // Falls through
         } catch (TemplateException e) {
             return createExceptionalResponse(e, ERROR_IN_TEMPLATE_EVALUATION);
@@ -69,9 +75,17 @@ public class FreeMarkerService {
             throw new RuntimeException(e);
         }
         
-        return new FreeMarkerServiceResponse.Builder().successfulResponse(writer.toString());
+        return new FreeMarkerServiceResponse.Builder().successfulResponse(writer.toString(), resultTruncated);
+    }
+    
+    public int getOutputLengthLimit() {
+        return outputLengthLimit;
     }
 
+    public void setOutputLengthLimit(int outputLengthLimit) {
+        this.outputLengthLimit = outputLengthLimit;
+    }
+    
     private FreeMarkerServiceResponse createExceptionalResponse(Exception e, String msg) {
         logger.info(msg);
         logger.debug(msg, e);

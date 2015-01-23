@@ -6,7 +6,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 
 /**
- * A {@link StringWriter} that limits its buffer size, and throws {@link WriterLengthLimitExceededException} when that's
+ * A {@link StringWriter} that limits its buffer size, and throws {@link LengthLimitExceededException} when that's
  * exceeded.
  */
 public class LengthLimitedWriter extends FilterWriter {
@@ -21,7 +21,7 @@ public class LengthLimitedWriter extends FilterWriter {
     @Override
     public void write(int c) throws IOException {
         if (lengthLeft < 1) {
-            throw new WriterLengthLimitExceededException();
+            throw new LengthLimitExceededException();
         }
         
         super.write(c);
@@ -43,7 +43,7 @@ public class LengthLimitedWriter extends FilterWriter {
         lengthLeft -= len;
         
         if (lengthExceeded) {
-            throw new WriterLengthLimitExceededException();
+            throw new LengthLimitExceededException();
         }
     }
 
@@ -61,7 +61,7 @@ public class LengthLimitedWriter extends FilterWriter {
         lengthLeft -= len;
         
         if (lengthExceeded) {
-            throw new WriterLengthLimitExceededException();
+            throw new LengthLimitExceededException();
         }
     }
 
