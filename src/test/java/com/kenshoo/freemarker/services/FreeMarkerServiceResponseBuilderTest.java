@@ -1,10 +1,11 @@
 package com.kenshoo.freemarker.services;
 
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+
+import org.junit.Test;
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,8 +20,18 @@ public class FreeMarkerServiceResponseBuilderTest {
     @Test
     public void testSuccessResult() {
         String resultText = "Result";
-        FreeMarkerServiceResponse result = freeMarkerServiceResponseBuilder.successfulResponse(resultText);
+        FreeMarkerServiceResponse result = freeMarkerServiceResponseBuilder.successfulResponse(resultText, false);
         assertThat(result.getResult(), equalTo(resultText));
+        assertThat(result.isResultTruncated(), is(false));
+        assertThat(result.isSucceed(), is(true));
+    }
+        
+    @Test
+    public void testSuccessTruncatedResult() {
+        String resultText = "Result";
+        FreeMarkerServiceResponse result = freeMarkerServiceResponseBuilder.successfulResponse(resultText, true);
+        assertThat(result.getResult(), equalTo(resultText));
+        assertThat(result.isResultTruncated(), is(true));
         assertThat(result.isSucceed(), is(true));
     }
 
@@ -29,6 +40,9 @@ public class FreeMarkerServiceResponseBuilderTest {
         String error = "Error";
         FreeMarkerServiceResponse result = freeMarkerServiceResponseBuilder.errorResponse(error);
         assertThat(result.getErrorReason(), equalTo(error));
+        assertThat(result.getResult(), equalTo(""));
+        assertThat(result.isResultTruncated(), is(false));
         assertThat(result.isSucceed(), is(false));
     }
+    
 }

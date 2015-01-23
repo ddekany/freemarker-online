@@ -31,7 +31,7 @@ public class FreeMarkerOnlineResultResourceTest {
 
     @Test
     public void testGoodResult() {
-        when(freeMarkerService.calculateFreeMarkerTemplate(anyString(), anyMap())).thenReturn(new FreeMarkerServiceResponse.Builder().successfulResponse("Result"));
+        when(freeMarkerService.calculateFreeMarkerTemplate(anyString(), anyMap())).thenReturn(new FreeMarkerServiceResponse.Builder().successfulResponse("Result", false));
         FreeMarkerOnlineView view = freeMarkerOnlineResultResource.formResult("template", "params");
         assertEquals(view.getResult(), "Result");
         assertEquals(view.getTemplate(), "template");
