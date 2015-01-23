@@ -3,7 +3,6 @@ package com.kenshoo.freemarker.services;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 
@@ -84,8 +83,8 @@ public class FreeMarkerServiceTest {
                 TRUNCATION_TEST_TEMPLATE, Collections.<String,String>emptyMap());
         assertThat(serviceResponse.isSucceed(), is(true));
         assertThat(serviceResponse.isResultTruncated(), is(true));
-        assertThat(serviceResponse.getResult(),
-                startsWith(TRUNCATION_TEST_TEMPLATE.substring(0, freeMarkerService.getOutputLengthLimit())));
+        assertThat(serviceResponse.getResult().substring(0, freeMarkerService.getOutputLengthLimit()),
+                equalTo(TRUNCATION_TEST_TEMPLATE.substring(0, freeMarkerService.getOutputLengthLimit())));
         assertThat(serviceResponse.getResult().charAt(freeMarkerService.getOutputLengthLimit()),
                 not(equalTo(TRUNCATION_TEST_TEMPLATE.charAt(freeMarkerService.getOutputLengthLimit()))));
     }
