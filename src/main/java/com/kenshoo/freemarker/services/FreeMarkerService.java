@@ -49,7 +49,7 @@ public class FreeMarkerService {
         freeMarkerConfig.setNewBuiltinClassResolver(TemplateClassResolver.ALLOWS_NOTHING_RESOLVER);
         freeMarkerConfig.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         freeMarkerConfig.setLocale(Locale.US);
-        freeMarkerConfig.setTimeZone(TimeZone.getTimeZone("PST"));
+        freeMarkerConfig.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
         freeMarkerConfig.setOutputEncoding("UTF-8");
     }
     
