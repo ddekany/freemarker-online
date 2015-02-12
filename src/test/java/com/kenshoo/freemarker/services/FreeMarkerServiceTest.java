@@ -1,11 +1,7 @@
 package com.kenshoo.freemarker.services;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,6 +10,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import freemarker.core.ParseException;
+import freemarker.template.TemplateException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,68 +24,74 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class FreeMarkerServiceTest {
 
     private static final String TRUNCATION_TEST_TEMPLATE = "12345";
+    
     @InjectMocks
     FreeMarkerService freeMarkerService;
 
     @Test
-    public void testCalculationOfATemplateWithNoParams() {
-        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateFreeMarkerTemplate("test", Collections.<String,String>emptyMap());
-        assertThat(serviceResponse.isSucceed(), is(true));
-        assertThat(serviceResponse.getResult(), is("test"));
+    public void testCalculationOfATemplateWithNoDataModel() {
+        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateTemplateOutput(
+                "test", Collections.<String, Object>emptyMap());
+        assertThat(serviceResponse.isSuccesful(), is(true));
+        assertThat(serviceResponse.getTemplateOutput(), is("test"));
     }
 
     @Test
     public void testSimpleTemplate() {
-        HashMap<String, String> params = new HashMap<>();
-        params.put("var1", "val1");
-        String template = "${var1}";
-        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateFreeMarkerTemplate(template, params);
-        assertThat(serviceResponse.getResult(), equalTo("val1"));
+        HashMap<String, Object> dataModel = new HashMap<>();
+        dataModel.put("var1", "val1");
+        String templateSourceCode = "${var1}";
+        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateTemplateOutput(
+                templateSourceCode, dataModel);
+        assertThat(serviceResponse.getTemplateOutput(), equalTo("val1"));
     }
 
     @Test
     public void testTemplateWithFewArgsAndOperators() {
-        HashMap<String, String> params = new HashMap<>();
-        params.put("var1", "val1");
-        params.put("var2", "val2");
+        HashMap<String, Object> dataModel = new HashMap<>();
+        dataModel.put("var1", "val1");
+        dataModel.put("var2", "val2");
         String template = "${var1?capitalize} ${var2?cap_first}";
-        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateFreeMarkerTemplate(template, params);
-        assertThat(serviceResponse.getResult(), equalTo("Val1 Val2"));
+        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateTemplateOutput(template, dataModel);
+        assertThat(serviceResponse.getTemplateOutput(), equalTo("Val1 Val2"));
     }
 
     @Test
-    public void testCalculationOfAWrongTemplate() {
-        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateFreeMarkerTemplate("test ${xx", Collections.<String,String>emptyMap());
-        assertThat(serviceResponse.isSucceed(), is(false));
-        assertNotEquals("", serviceResponse.getErrorReason());
+    public void testTemplateWithSyntaxError() {
+        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateTemplateOutput(
+                "test ${xx", Collections.<String, Object>emptyMap());
+        assertThat(serviceResponse.isSuccesful(), is(false));
+        assertThat(serviceResponse.getFailureReason(), instanceOf(ParseException.class));
     }
 
     @Test
-    public void testEvaluationError() {
-        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateFreeMarkerTemplate("test ${x}", Collections.<String,String>emptyMap());
-        assertThat(serviceResponse.isSucceed(), is(false));
+    public void testTemplateWithEvaluationError() {
+        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateTemplateOutput(
+                "test ${x}", Collections.<String, Object>emptyMap());
+        assertThat(serviceResponse.isSuccesful(), is(false));
+        assertThat(serviceResponse.getFailureReason(), instanceOf(TemplateException.class));
     }
 
     @Test
     public void testResultAlmostTruncation() {
         freeMarkerService.setOutputLengthLimit(5);
-        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateFreeMarkerTemplate(
-                TRUNCATION_TEST_TEMPLATE, Collections.<String,String>emptyMap());
-        assertThat(serviceResponse.isSucceed(), is(true));
-        assertThat(serviceResponse.isResultTruncated(), is(false));
-        assertThat(serviceResponse.getResult(), equalTo(TRUNCATION_TEST_TEMPLATE));
+        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateTemplateOutput(
+                TRUNCATION_TEST_TEMPLATE, Collections.<String, Object>emptyMap());
+        assertThat(serviceResponse.isSuccesful(), is(true));
+        assertThat(serviceResponse.isTemplateOutputTruncated(), is(false));
+        assertThat(serviceResponse.getTemplateOutput(), equalTo(TRUNCATION_TEST_TEMPLATE));
     }
 
     @Test
     public void testResultTruncation() {
         freeMarkerService.setOutputLengthLimit(4);
-        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateFreeMarkerTemplate(
-                TRUNCATION_TEST_TEMPLATE, Collections.<String,String>emptyMap());
-        assertThat(serviceResponse.isSucceed(), is(true));
-        assertThat(serviceResponse.isResultTruncated(), is(true));
-        assertThat(serviceResponse.getResult(),
+        FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateTemplateOutput(
+                TRUNCATION_TEST_TEMPLATE, Collections.<String, Object>emptyMap());
+        assertThat(serviceResponse.isSuccesful(), is(true));
+        assertThat(serviceResponse.isTemplateOutputTruncated(), is(true));
+        assertThat(serviceResponse.getTemplateOutput(),
                 startsWith(TRUNCATION_TEST_TEMPLATE.substring(0, freeMarkerService.getOutputLengthLimit())));
-        assertThat(serviceResponse.getResult().charAt(freeMarkerService.getOutputLengthLimit()),
+        assertThat(serviceResponse.getTemplateOutput().charAt(freeMarkerService.getOutputLengthLimit()),
                 not(equalTo(TRUNCATION_TEST_TEMPLATE.charAt(freeMarkerService.getOutputLengthLimit()))));
     }
     

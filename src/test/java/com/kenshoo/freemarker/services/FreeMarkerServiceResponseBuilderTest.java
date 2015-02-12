@@ -1,9 +1,7 @@
 package com.kenshoo.freemarker.services;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
@@ -15,34 +13,36 @@ import org.junit.Test;
  */
 public class FreeMarkerServiceResponseBuilderTest {
 
-    public FreeMarkerServiceResponse.Builder freeMarkerServiceResponseBuilder = new FreeMarkerServiceResponse.Builder();
+    private static final String RESULT = "Result";
+    
+    private final FreeMarkerServiceResponse.Builder builder = new FreeMarkerServiceResponse.Builder();
 
     @Test
     public void testSuccessResult() {
-        String resultText = "Result";
-        FreeMarkerServiceResponse result = freeMarkerServiceResponseBuilder.successfulResponse(resultText, false);
-        assertThat(result.getResult(), equalTo(resultText));
-        assertThat(result.isResultTruncated(), is(false));
-        assertThat(result.isSucceed(), is(true));
+        FreeMarkerServiceResponse result = builder.buildForSuccess(RESULT, false);
+        assertThat(result.getTemplateOutput(), equalTo(RESULT));
+        assertThat(result.isTemplateOutputTruncated(), is(false));
+        assertThat(result.isSuccesful(), is(true));
+        assertThat(result.getFailureReason(), nullValue());
     }
         
     @Test
     public void testSuccessTruncatedResult() {
-        String resultText = "Result";
-        FreeMarkerServiceResponse result = freeMarkerServiceResponseBuilder.successfulResponse(resultText, true);
-        assertThat(result.getResult(), equalTo(resultText));
-        assertThat(result.isResultTruncated(), is(true));
-        assertThat(result.isSucceed(), is(true));
+        FreeMarkerServiceResponse result = builder.buildForSuccess(RESULT, true);
+        assertThat(result.getTemplateOutput(), equalTo(RESULT));
+        assertThat(result.isTemplateOutputTruncated(), is(true));
+        assertThat(result.isSuccesful(), is(true));
+        assertThat(result.getFailureReason(), nullValue());
     }
 
     @Test
     public void testErrorResult() {
-        String error = "Error";
-        FreeMarkerServiceResponse result = freeMarkerServiceResponseBuilder.errorResponse(error);
-        assertThat(result.getErrorReason(), equalTo(error));
-        assertThat(result.getResult(), equalTo(""));
-        assertThat(result.isResultTruncated(), is(false));
-        assertThat(result.isSucceed(), is(false));
+        Throwable failureReason = new Exception();
+        FreeMarkerServiceResponse result = builder.buildForFailure(failureReason);
+        assertThat(result.getTemplateOutput(), nullValue());
+        assertThat(result.isTemplateOutputTruncated(), is(false));
+        assertThat(result.isSuccesful(), is(false));
+        assertThat(result.getFailureReason(), sameInstance(failureReason));
     }
     
 }

@@ -1,6 +1,5 @@
 package com.kenshoo.freemarker.services;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -11,9 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.kenshoo.freemarker.util.LengthLimitedWriter;
 import com.kenshoo.freemarker.util.LengthLimitExceededException;
+import com.kenshoo.freemarker.util.LengthLimitedWriter;
 
+import freemarker.core.ParseException;
 import freemarker.core.TemplateClassResolver;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -35,9 +35,6 @@ public class FreeMarkerService {
             + "Aborted template processing, as the output length has exceeded the {0} character limit set for "
             + "this service.";
     
-    private static final String ERROR_IN_TEMPLATE_PARSING = "Error in template parsing";
-    private static final String ERROR_IN_TEMPLATE_EVALUATION = "Error in template evaluation";
-    
     private static final Logger logger = LoggerFactory.getLogger(FreeMarkerService.class);
 
     private final Configuration freeMarkerConfig;
@@ -53,30 +50,46 @@ public class FreeMarkerService {
         freeMarkerConfig.setOutputEncoding("UTF-8");
     }
     
-    public FreeMarkerServiceResponse calculateFreeMarkerTemplate(String templateText, Map<String, String> params) {
+    /**
+     * @return The result of the template parsing and evaluation. The method won't throw exception if that fails due to
+     *         errors in the template provided, instead it indicates this fact in the response object. That's because
+     *         this is a service for trying out the template language, so such errors are part of the normal operation.
+     * 
+     * @throws FreeMarkerServiceException
+     *             If the calculation fails from a reason that's not a mistake in the template.
+     */
+    public FreeMarkerServiceResponse calculateTemplateOutput(
+            String templateSourceCode, Map<String, Object> dataModel) {
         Template template;
         try {
-            template = new Template(null, templateText, freeMarkerConfig);
-        } catch (IOException e) {
-            return createExceptionalResponse(e, ERROR_IN_TEMPLATE_PARSING);
+            template = new Template(null, templateSourceCode, freeMarkerConfig);
+        } catch (ParseException e) {
+            // Expected (part of normal operation)
+            return createFailureResponse(e);
+        } catch (Exception e) {
+            // Not expected
+            throw new FreeMarkerServiceException("Unexpected exception during template parsing", e);
         }
         
-        boolean resultTruncated = false;
+        boolean resultTruncated;
         StringWriter writer = new StringWriter();
         try {
-            template.process(params, new LengthLimitedWriter(writer, outputLengthLimit));
+            template.process(dataModel, new LengthLimitedWriter(writer, outputLengthLimit));
+            resultTruncated = false;
         } catch (LengthLimitExceededException e) {
+            resultTruncated = true;
             writer.write(new MessageFormat(OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATION, Locale.US)
                     .format(new Object[] { outputLengthLimit }));
-            resultTruncated = true;
-            // Falls through
+            // Falls through (not an error)
         } catch (TemplateException e) {
-            return createExceptionalResponse(e, ERROR_IN_TEMPLATE_EVALUATION);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            // Expected (part of normal operation)
+            return createFailureResponse(e);
+        } catch (Exception e) {
+            // Not expected
+            throw new FreeMarkerServiceException("Unexpected exception during template evaluation", e);
         }
         
-        return new FreeMarkerServiceResponse.Builder().successfulResponse(writer.toString(), resultTruncated);
+        return new FreeMarkerServiceResponse.Builder().buildForSuccess(writer.toString(), resultTruncated);
     }
     
     public int getOutputLengthLimit() {
@@ -87,10 +100,9 @@ public class FreeMarkerService {
         this.outputLengthLimit = outputLengthLimit;
     }
     
-    private FreeMarkerServiceResponse createExceptionalResponse(Exception e, String msg) {
-        logger.info(msg);
-        logger.debug(msg, e);
-        return new FreeMarkerServiceResponse.Builder().errorResponse(e.getMessage());
+    private FreeMarkerServiceResponse createFailureResponse(Throwable e) {
+        logger.debug("The template had error(s)", e);
+        return new FreeMarkerServiceResponse.Builder().buildForFailure(e);
     }
 
 }

@@ -7,47 +7,49 @@ package com.kenshoo.freemarker.services;
  * Time: 11:28 AM
  */
 public class FreeMarkerServiceResponse {
-    private String result;
-    private boolean succeed;
-    private boolean resultTruncated;
-    private String errorReason;
+    
+    private final String templateOutput;
+    private final boolean templateOutputTruncated;
+    private final Throwable failureReason;
 
-    private FreeMarkerServiceResponse(String result, boolean succeed, boolean resultTruncated, String errorReason) {
-        this.result = result;
-        this.succeed = succeed;
-        this.resultTruncated = resultTruncated;
-        this.errorReason = errorReason;
+    FreeMarkerServiceResponse(String templateOutput, boolean templateOutputTruncated) {
+        this.templateOutput = templateOutput;
+        this.templateOutputTruncated = templateOutputTruncated;
+        this.failureReason = null;
     }
 
-    public String getResult() {
-        return result;
+    FreeMarkerServiceResponse(Throwable failureReason) {
+        this.templateOutput = null;
+        this.templateOutputTruncated = false;
+        this.failureReason = failureReason;
+    }
+    
+    public String getTemplateOutput() {
+        return templateOutput;
     }
 
-    public boolean isSucceed() {
-        return succeed;
+    public boolean isTemplateOutputTruncated() {
+        return templateOutputTruncated;
     }
 
-    public String getErrorReason() {
-        return errorReason;
+    public boolean isSuccesful() {
+        return failureReason == null;
     }
 
-    public boolean isResultTruncated() {
-        return resultTruncated;
-    }
-
-    public void setResultTruncated(boolean resultTruncated) {
-        this.resultTruncated = resultTruncated;
+    public Throwable getFailureReason() {
+        return failureReason;
     }
 
     public static class Builder {
         
-        public FreeMarkerServiceResponse successfulResponse(String result, boolean resultTruncated){
-            return new FreeMarkerServiceResponse(result, true, resultTruncated, "");
+        public FreeMarkerServiceResponse buildForSuccess(String result, boolean resultTruncated){
+            return new FreeMarkerServiceResponse(result, resultTruncated);
         }
 
-        public FreeMarkerServiceResponse errorResponse(String errorReason){
-            return new FreeMarkerServiceResponse("", false, false, errorReason);
+        public FreeMarkerServiceResponse buildForFailure(Throwable failureReason){
+            return new FreeMarkerServiceResponse(failureReason);
         }
         
     }
+    
 }

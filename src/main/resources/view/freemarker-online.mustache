@@ -1,31 +1,46 @@
  <html>
     <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+        
         <title>Online FreeMarker Template Tester</title>
-        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/pure/0.4.2/pure-min.css">
     </head>
     <body>
         <form action="result" method="post" class="pure-form pure-form-stacked" style="padding:15px;">
-         <fieldset>
-            <legend>Online FreeMarker Template Tester (using FreeMarker {{freeMarkerVersion}})</legend>
-            <br/>
-            <input type="text" name="template" size="150" class="pure-input-rounded" value="{{template}}" placeholder="Enter your Freemarker template"/>
-            <br/>
-            <textarea name="params" rows="10" cols="150" class="pure-input-rounded" placeholder="Enter a list of parameters in Java Properties format (key=value)">{{params}}</textarea>
-            <br/>
+            <h1>Online FreeMarker Template Tester (using FreeMarker {{freeMarkerVersion}})</h1>
+
+            <label for="template">Template</label>
+            <input type="text" name="template" size="150" class="pure-input-rounded" value="{{template}}"
+                    placeholder="Enter template, like: Hello ${user}!"/>
+
+            <label for="template">Data model</label>
+            <textarea name="dataModel" rows="10" cols="150" class="pure-input-rounded"
+                    placeholder='Enter one or more assignments (like: user = John Doe), starting each in its own line.
+For the value after the "=" you can use the following syntax:
+ unquoted string (like John Doe),
+ quoted JSON string (like "John Doe"),
+ number (like 3.14),
+ boolean (true or false),
+ JSON array (like [1, 2, 3]),
+ JSON object (like { "name": "John Doe", "age": 30 }),
+ ISO 8601 date/time/date-time (like 2014-02-28 or 20:50:30.5+02 or 2014-02-28T18:50Z),
+ and XML (like &lt;example x="1"&gt;text&lt;example&gt;).'
+            >{{dataModel}}</textarea>
+
             <input id="eval-btn" type="submit" value="Evaluate" class="pure-button pure-button-primary"/>
+            
+            {{#hasResult}}
+                <p>Result:</p>
+                <textarea id="result" rows="10" cols="150" class="pure-input-rounded">{{result}}</textarea>
+            {{/hasResult}}
         </form>
-        <br/>
-        <br/>
-        <textarea id="result" rows="10" cols="150" class="pure-input-rounded">{{result}}</textarea>
-        <br/>
+        
         <p>FreeMarker documentation links:
           <a href="http://freemarker.org/docs/" target="_blank">Table of Contents</a>
           |
           <a href="http://freemarker.org/docs/dgui_template_exp.html#exp_cheatsheet" target="_blank">Expression syntax</a>
           |
           <a href="http://freemarker.org/docs/ref_builtins_string.html" target="_blank">String&nbsp;manipulation&nbsp;<q>built-ins</q></a>
-        </ul>
-        </fieldset>
     </body>
 
 </html>

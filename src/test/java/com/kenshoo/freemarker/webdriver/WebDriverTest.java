@@ -25,7 +25,7 @@ import static org.junit.Assert.assertEquals;
 public class WebDriverTest {
 
     private static final String TEMPLATE_INPUT_NAME = "template";
-    private static final String PARAMS_FIELD_NAME = "params";
+    private static final String DATA_MODEL_INPUT_NAME = "dataModel";
     private WebDriver driver;
 
     @ClassRule
@@ -46,7 +46,7 @@ public class WebDriverTest {
     public void testBasicUIFlow() throws Exception {
         driver.get("http://localhost:8080");
         fillInputField(TEMPLATE_INPUT_NAME, "${var1}");
-        fillInputField(PARAMS_FIELD_NAME,"var1=val1");
+        fillInputField(DATA_MODEL_INPUT_NAME,"var1=val1");
         submitForm();
         WebElement result = driver.findElement(By.id("result"));
         assertEquals(result.getText(), "val1");
@@ -57,9 +57,8 @@ public class WebDriverTest {
     }
 
     private void fillInputField(String fieldName, String value) {
-        WebElement template = driver.findElement(By.name(fieldName));
-        template.sendKeys(value);
+        WebElement inputElement = driver.findElement(By.name(fieldName));
+        inputElement.sendKeys(value);
     }
-
 
 }
