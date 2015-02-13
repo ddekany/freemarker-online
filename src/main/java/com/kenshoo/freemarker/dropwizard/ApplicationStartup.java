@@ -17,6 +17,7 @@ package com.kenshoo.freemarker.dropwizard;
 
 import com.berico.fallwizard.SpringConfiguration;
 import com.berico.fallwizard.SpringService;
+import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.views.ViewBundle;
 
@@ -35,7 +36,7 @@ public class ApplicationStartup extends SpringService<SpringConfiguration> {
     public void initialize(Bootstrap<SpringConfiguration> bootstrap) {
         bootstrap.setName("freemarker-online");
         bootstrap.addBundle(new ViewBundle());
-
+        bootstrap.addBundle(new AssetsBundle("/assets/css", "/css"));
     }
 
 }

@@ -1,0 +1,54 @@
+#layout {
+	position: relative;
+	padding: 0;
+}
+
+.header {
+	margin: 0;
+	padding: 1em 0;
+	border-bottom: 1px solid #eee;
+	text-align: center;
+	color: #444;
+}
+
+.content {
+    margin: 0 auto;
+    padding: 1em 0;
+    width: 900px;
+}
+
+.footer {
+    margin: 0;
+    padding: 1em 2em 0;
+    border-top: 1px solid #eee;
+    text-align: center;
+    color: #444;
+}
+
+.header h1 {
+    margin: 0.2em 0;
+    font-size: 1.5em;
+    font-weight: normal;
+}
+
+.header h2 {
+    margin: 0;
+    padding: 0;
+    font-weight: normal;
+    font-size: 1em;
+    color: #bbb;
+}
+
+.resultContainer {
+	margin-top: 1em;
+}
+
+#result {
+    background-color: #FFF;
+    color: #000	
+}
+
+#result.error {
+    background-color: #FFF0F0;
+	color: #A00;
+}

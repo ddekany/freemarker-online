@@ -64,6 +64,10 @@ public class FreeMarkerOnlineView extends View {
     public boolean getHasResult() {
         return resultType != FreeMarkerOnlineViewResultType.BLANK;
     }
+    
+    public boolean isErrorResult() {
+        return resultType.isError();
+    }
 
     public FreeMarkerOnlineViewResultType getResultType() {
         return resultType;
