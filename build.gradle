@@ -52,7 +52,7 @@ dependencies {
     testCompile libraries.springTest
     testCompile libraries.junit
     testCompile libraries.mockito
-    testCompile libraries.hamcrest;
+    testCompile libraries.hamcrest
 
     compile libraries.freemarker
 

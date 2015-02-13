@@ -66,7 +66,8 @@ public class FreeMarkerService {
         try {
             template.process(params, new LengthLimitedWriter(writer, outputLengthLimit));
         } catch (LengthLimitExceededException e) {
-            writer.write(MessageFormat.format(OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATION, outputLengthLimit));
+            writer.write(new MessageFormat(OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATION, Locale.US)
+                    .format(new Object[] { outputLengthLimit }));
             resultTruncated = true;
             // Falls through
         } catch (TemplateException e) {
