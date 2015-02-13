@@ -10,12 +10,11 @@
     <div id="main">
         <div class="header">
             <h1>Online FreeMarker Template Tester</h1>
-            <h2>Using FreeMarker {{freeMarkerVersion}}</h2>
         </div>
 
         <div class="content">
             <form action="result" method="post" class="pure-form pure-form-stacked">
-                <label for="template">Template</label>
+                <label for="template">Template <span class="faint">(FreeMarker {{freeMarkerVersion}})</span></label>
                 <input type="text" name="template" class="pure-input-1" value="{{template}}"
                         placeholder="Enter template, like: Hello ${user}!"/>
     
@@ -45,7 +44,7 @@
         </div><!-- content -->
         <div class="footer">
             FreeMarker documentation:
-            <a href="http://freemarker.org/docs/" target="_blank">Table of Contents</a>
+            <a href="http://freemarker.org/docs/" target="_blank">Contents</a>
             |
             <a href="http://freemarker.org/docs/dgui_template_overallstructure.html" target="_blank">Overall&nbsp;syntax</a>
             |

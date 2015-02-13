@@ -14,7 +14,7 @@
 .content {
     margin: 0 auto;
     padding: 1em 0;
-    width: 900px;
+    width: 920px;
 }
 
 .footer {
@@ -27,16 +27,8 @@
 
 .header h1 {
     margin: 0.2em 0;
-    font-size: 1.5em;
+    font-size: 1.75em;
     font-weight: normal;
-}
-
-.header h2 {
-    margin: 0;
-    padding: 0;
-    font-weight: normal;
-    font-size: 1em;
-    color: #bbb;
 }
 
 .resultContainer {
@@ -51,4 +43,8 @@
 #result.error {
     background-color: #FFF0F0;
 	color: #A00;
+}
+
+.faint {
+	color: #bbb
 }
