@@ -55,6 +55,7 @@ dependencies {
     testCompile libraries.hamcrest
 
     compile libraries.freemarker
+    compile libraries.jackson_databind
 
     testCompile libraries.selenium_java
 

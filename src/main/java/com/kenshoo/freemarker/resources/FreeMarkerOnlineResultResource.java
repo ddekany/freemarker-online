@@ -2,12 +2,21 @@ package com.kenshoo.freemarker.resources;
 
 import com.kenshoo.freemarker.services.FreeMarkerService;
 import com.kenshoo.freemarker.services.FreeMarkerServiceResponse;
+import com.kenshoo.freemarker.util.DataModelParser;
+import com.kenshoo.freemarker.util.DataModelParsingException;
 import com.kenshoo.freemarker.view.FreeMarkerOnlineView;
+import com.kenshoo.freemarker.view.FreeMarkerOnlineViewResultType;
+
+import freemarker.core.ParseException;
+import freemarker.template.TemplateException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.xml.ws.FaultAction;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
@@ -25,39 +34,56 @@ import java.util.Properties;
 public class FreeMarkerOnlineResultResource {
 
     @Autowired
-    FreeMarkerService freeMarkerService;
+    private FreeMarkerService freeMarkerService;
 
     @POST
     @Produces(MediaType.TEXT_HTML)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public FreeMarkerOnlineView formResult(@FormParam("template") String templateText, @FormParam("params") String params) {
-        Properties properties = parseProperties(params);
-        Map<String, String> templateParams = propertiesToMap(properties);
-        FreeMarkerServiceResponse freeMarkerServiceResponse = freeMarkerService.calculateFreeMarkerTemplate(templateText, templateParams);
-        if (freeMarkerServiceResponse.isSucceed()){
-            return new FreeMarkerOnlineView(false,freeMarkerServiceResponse.getResult(),templateText,params);
-        }
-        else {
-            return new FreeMarkerOnlineView(false,freeMarkerServiceResponse.getErrorReason(),templateText,params);
-        }
-
-    }
-
-    private Properties parseProperties(String params) {
+    public FreeMarkerOnlineView formResult(
+            @FormParam("template") String templateInput,
+            @FormParam("dataModel") String dataModelInput) {
+        Map<String, Object> dataModel;
         try {
-            Properties properties = new Properties();
-            properties.load(new StringReader(params));
-            return properties;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            dataModel = DataModelParser.parse(dataModelInput);
+        } catch (DataModelParsingException e) {
+            return new FreeMarkerOnlineView(
+                    FreeMarkerOnlineViewResultType.DATA_MODEL_ERROR, e.getMessage(),
+                    templateInput, dataModelInput);
+        }
+        FreeMarkerServiceResponse freeMarkerServiceResponse = freeMarkerService.calculateTemplateOutput(
+                templateInput, dataModel);
+        if (freeMarkerServiceResponse.isSuccesful()){
+            return new FreeMarkerOnlineView(
+                    FreeMarkerOnlineViewResultType.TEMPLATE_OUTPUT, freeMarkerServiceResponse.getTemplateOutput(),
+                    templateInput, dataModelInput);
+        } else {
+            Throwable failureReason = freeMarkerServiceResponse.getFailureReason();
+            return new FreeMarkerOnlineView(
+                    FreeMarkerOnlineViewResultType.TEMPLATE_ERROR, getMessageWithCauses(failureReason),
+                    templateInput, dataModelInput);
         }
     }
 
-    private Map<String, String> propertiesToMap(Properties properties) {
-        Map<String, String> templateParams = new HashMap<>();
-        for (String key : properties.stringPropertyNames()) {
-            templateParams.put(key, properties.getProperty(key));
+    /**
+     * The error message (and sometimes also the class), and then the same with the cause exception, and so on. Doesn't
+     * contain the stack trace or other location information.
+     */
+    private static String getMessageWithCauses(final Throwable exc) {
+        StringBuilder sb = new StringBuilder();
+        
+        Throwable curExc = exc;
+        while (curExc != null) {
+            if (curExc != exc) {
+                sb.append("\n\nCaused by:\n");
+            }
+            String msg = curExc.getMessage();
+            if (msg == null || !(curExc instanceof TemplateException || curExc instanceof ParseException)) {
+                sb.append(curExc.getClass().getName()).append(": ");
+            }
+            sb.append(msg);
+            curExc = curExc.getCause();
         }
-        return templateParams;
+        return sb.toString();
     }
+
 }

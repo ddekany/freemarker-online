@@ -1,8 +1,9 @@
 package com.kenshoo.freemarker.view;
 
-import org.junit.Test;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,23 +13,36 @@ import static org.junit.Assert.assertEquals;
  */
 public class FreeMarkerOnlineViewTest {
 
+    private static final String RESULT = "Result";
+    private static final String TEMPLATE = "Template";
+    private static final String DATA_MODEL = "DataModel";
+
     @Test
-    public void testViewWithErrorInEval() {
-        String error = "Error1";
-        FreeMarkerOnlineView freeMarkerOnlineView = new FreeMarkerOnlineView(true, error, "", "");
+    public void testViewWhenDataModelIsWrong() {
+        FreeMarkerOnlineView view = new FreeMarkerOnlineView(
+                FreeMarkerOnlineViewResultType.DATA_MODEL_ERROR, RESULT, TEMPLATE, DATA_MODEL);
+        assertEquals(view.getTemplate(), TEMPLATE);
+        assertEquals(view.getDataModel(), DATA_MODEL);
+        assertThat(view.getResult(), containsString(FreeMarkerOnlineView.DATA_MODEL_ERROR_MESSAGE_HEADING));
+        assertThat(view.getResult(), containsString(RESULT));
+        assertThat(view.getResult(), containsString(FreeMarkerOnlineView.DATA_MODEL_ERROR_MESSAGE_FOOTER));
+    }
+    
+    @Test
+    public void testViewWhenTemplateIsWrong() {
+        FreeMarkerOnlineView freeMarkerOnlineView = new FreeMarkerOnlineView(
+                FreeMarkerOnlineViewResultType.TEMPLATE_ERROR, RESULT, TEMPLATE, DATA_MODEL);
         String result = freeMarkerOnlineView.getResult();
-        assertEquals(result, FreeMarkerOnlineView.ERROR_IN_EVAL + error);
+        assertEquals(result, RESULT);
     }
 
     @Test
-    public void testResultWhenAllOK() {
-        String result = "Result";
-        String template = "Template";
-        String params = "Params";
-        FreeMarkerOnlineView freeMarkerOnlineView = new FreeMarkerOnlineView(false, result, template, params);
-        assertEquals(freeMarkerOnlineView.getResult(), result);
-        assertEquals(freeMarkerOnlineView.getTemplate(), template);
-        assertEquals(freeMarkerOnlineView.getParams(), params);
-
+    public void testViewWhenAllOK() {
+        FreeMarkerOnlineView view = new FreeMarkerOnlineView(
+                FreeMarkerOnlineViewResultType.TEMPLATE_OUTPUT, RESULT, TEMPLATE, DATA_MODEL);
+        assertEquals(view.getTemplate(), TEMPLATE);
+        assertEquals(view.getDataModel(), DATA_MODEL);
+        assertEquals(view.getResult(), RESULT);
     }
+    
 }
