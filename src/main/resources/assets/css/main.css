@@ -52,3 +52,7 @@
 .source-code {
     font-family: monospace !important;	
 }
+
+textarea {
+	resize: vertical;
+}

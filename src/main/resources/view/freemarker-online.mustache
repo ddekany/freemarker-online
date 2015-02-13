@@ -3,6 +3,18 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" ></script>
+    <script>
+        $(document).ready(function() {
+            $('#templateAndModelForm textarea').keydown(function (e) {
+                if ((e.keyCode == 10 || e.keyCode == 13) && e.ctrlKey) {
+                    $('#templateAndModelForm').submit();
+                }
+            });
+        });    
+    </script>
+    
     <title>Online FreeMarker Template Tester</title>
 </head>
 <body>
@@ -13,13 +25,13 @@
         </div>
 
         <div class="content">
-            <form action="result" method="post" class="pure-form pure-form-stacked">
+            <form id="templateAndModelForm" action="result" method="post" class="pure-form pure-form-stacked">
                 <label for="template">Template <span class="faint">(FreeMarker {{freeMarkerVersion}})</span></label>
-                <input type="text" name="template" class="pure-input-1 source-code" value="{{template}}"
-                        placeholder="Enter template, like: Hello ${user}!"/>
+                <textarea name="template" rows="8" class="pure-input-1 source-code"
+                        placeholder="Enter template, like: Hello ${user}!"/>{{template}}</textarea>
     
                 <label for="template">Data model</label>
-                <textarea name="dataModel" rows="10" class="pure-input-1 source-code"
+                <textarea name="dataModel" rows="8" class="pure-input-1 source-code"
                         placeholder='Enter one or more assignments (like: user = John Doe), starting each in its own line.
  For the value after the "=" you can use the following syntax:
  unquoted string (like John Doe),
@@ -33,15 +45,17 @@
                 >{{dataModel}}</textarea>
     
                 <input id="eval-btn" type="submit" value="Evaluate" class="pure-button pure-button-primary"/>
+                &nbsp; <span class="faint">Ctrl+Enter in input fields will submit this form too</span>
                 
                 {{#hasResult}}
                     <div class="resultContainer">
                         <label for="result">Result</label>
-                        <textarea id="result" rows="10" class="pure-input-1 source-code {{#errorResult}} error{{/errorResult}}" readonly>{{result}}</textarea>
+                        <textarea id="result" rows="8" class="pure-input-1 source-code {{#errorResult}} error{{/errorResult}}" readonly>{{result}}</textarea>
                     </div>
                 {{/hasResult}}
             </form>
         </div><!-- content -->
+        
         <div class="footer">
             FreeMarker documentation:
             <a href="http://freemarker.org/docs/" target="_blank">Contents</a>
