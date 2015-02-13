@@ -36,9 +36,9 @@ For the value after the "=" you can use the following syntax:
                 <input id="eval-btn" type="submit" value="Evaluate" class="pure-button pure-button-primary"/>
                 
                 {{#hasResult}}
-                    <div class="result">
+                    <div class="resultContainer">
                         <label for="result">Result</label>
-                        <textarea id="result" rows="10" class="pure-input-1" readonly>{{result}}</textarea>
+                        <textarea id="result" rows="10" class="pure-input-1{{#errorResult}} error{{/errorResult}}" readonly>{{result}}</textarea>
                     </div>
                 {{/hasResult}}
             </form>

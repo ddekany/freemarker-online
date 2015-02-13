@@ -39,6 +39,16 @@
     color: #bbb;
 }
 
-.result {
+.resultContainer {
 	margin-top: 1em;
+}
+
+#result {
+    background-color: #FFF;
+    color: #000	
+}
+
+#result.error {
+    background-color: #FFF0F0;
+	color: #A00;
 }
