@@ -49,10 +49,10 @@
 	color: #bbb
 }
 
-.source-code {
-    font-family: monospace !important;	
-}
-
-textarea {
-	resize: vertical;
+textarea.source-code {
+	font-family: monospace !important;
+    /* We set a few more things to decrease the chance of jQuery Autosize plugin issues: */
+    font-size: 1em !important;  
+	resize: none !important;
+    line-height: 1em !important;
 }
