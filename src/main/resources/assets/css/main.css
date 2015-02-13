@@ -48,3 +48,7 @@
 .faint {
 	color: #bbb
 }
+
+.source-code {
+    font-family: monospace !important;	
+}

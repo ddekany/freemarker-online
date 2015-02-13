@@ -15,11 +15,11 @@
         <div class="content">
             <form action="result" method="post" class="pure-form pure-form-stacked">
                 <label for="template">Template <span class="faint">(FreeMarker {{freeMarkerVersion}})</span></label>
-                <input type="text" name="template" class="pure-input-1" value="{{template}}"
+                <input type="text" name="template" class="pure-input-1 source-code" value="{{template}}"
                         placeholder="Enter template, like: Hello ${user}!"/>
     
                 <label for="template">Data model</label>
-                <textarea name="dataModel" rows="10" class="pure-input-1"
+                <textarea name="dataModel" rows="10" class="pure-input-1 source-code"
                         placeholder='Enter one or more assignments (like: user = John Doe), starting each in its own line.
  For the value after the "=" you can use the following syntax:
  unquoted string (like John Doe),
@@ -37,7 +37,7 @@
                 {{#hasResult}}
                     <div class="resultContainer">
                         <label for="result">Result</label>
-                        <textarea id="result" rows="10" class="pure-input-1{{#errorResult}} error{{/errorResult}}" readonly>{{result}}</textarea>
+                        <textarea id="result" rows="10" class="pure-input-1 source-code {{#errorResult}} error{{/errorResult}}" readonly>{{result}}</textarea>
                     </div>
                 {{/hasResult}}
             </form>
