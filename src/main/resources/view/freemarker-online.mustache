@@ -66,13 +66,15 @@ someTime = 20:50:30.5+02:00
 someDatetime = 2014-02-28T18:50Z
 someList = ["JSON", "syntax", 1, 2, 3 ]
 someMap = { "JSON syntax": true, "nestedList": [1, 2, 3] }
-someXML = &lt;example x="1"&gt;text&lt;example&gt;</pre>
+someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
                 <textarea name="dataModel" class="pure-input-1 source-code"
                         placeholder='Enter one or more assignments (e.g. user = John Doe), starting each in its own line.'
                 >{{dataModel}}</textarea>
     
-                <input id="eval-btn" type="submit" value="Evaluate" class="pure-button pure-button-primary"/>
-                &nbsp; <span class="faint">Ctrl+Enter in input fields will submit this form too</span>
+                <div class="formBottomButtonsContainer">
+	                <input id="eval-btn" type="submit" value="Evaluate" class="pure-button pure-button-primary"/>
+	                &nbsp; <span class="faint">Ctrl+Enter in input fields will submit this form too</span>
+                </div>
                 
                 {{#hasResult}}
                     <div class="resultContainer">

@@ -31,10 +31,6 @@
     font-weight: normal;
 }
 
-.resultContainer {
-	margin-top: 1em;
-}
-
 #result {
     background-color: #FFF;
     color: #000	
@@ -67,4 +63,23 @@ textarea.source-code {
 	font-size: 1em;
 	padding: 4px;
 	margin: 0;
+}
+
+#templateAndModelForm input,
+#templateAndModelForm textarea,
+#templateAndModelForm button {
+	margin-bottom: 1em;
+}
+
+#templateAndModelForm label {
+    margin-top: 1em;
+    margin-bottom: 0.25em;
+}
+
+.formBottomButtonsContainer {
+	margin-top: 1.5em;
+}
+
+.resultContainer {
+    margin-top: 1em;
 }
