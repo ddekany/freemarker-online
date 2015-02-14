@@ -53,7 +53,7 @@ public class FreeMarkerOnlineResource {
         
         Map<String, Object> dataModel;
         try {
-            dataModel = DataModelParser.parse(dataModelInput);
+            dataModel = DataModelParser.parse(dataModelInput, freeMarkerService.getFreeMarkerTimeZone());
         } catch (DataModelParsingException e) {
             return new FreeMarkerOnlineView(
                     FreeMarkerOnlineViewResultType.DATA_MODEL_ERROR, e.getMessage(),

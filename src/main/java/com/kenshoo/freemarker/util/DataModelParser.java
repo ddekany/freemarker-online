@@ -3,18 +3,17 @@ package com.kenshoo.freemarker.util;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.net.MalformedURLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
@@ -62,10 +61,11 @@ public final class DataModelParser {
     
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
-    private DataModelParser(String src) {
+    private DataModelParser() {
+        // Not meant to be instantiated
     }
 
-    public static Map<String, Object> parse(String src) throws DataModelParsingException {
+    public static Map<String, Object> parse(String src, TimeZone timeZone) throws DataModelParsingException {
         if (!StringUtils.hasText(src)) {
             return Collections.emptyMap();
         }
@@ -84,7 +84,7 @@ public final class DataModelParser {
                         .trim();
                 final Object parsedValue;
                 try {
-                    parsedValue = parseValue(value);
+                    parsedValue = parseValue(value, timeZone);
                 } catch (DataModelParsingException e) {
                     throw new DataModelParsingException(
                             "Failed to parse the value of \"" + lastName + "\":\n" + e.getMessage(), e.getCause());
@@ -108,7 +108,7 @@ public final class DataModelParser {
         return dataModel;
     }
     
-    private static Object parseValue(String value) throws DataModelParsingException {
+    private static Object parseValue(String value, TimeZone timeZone) throws DataModelParsingException {
         // Note: Because we fall back to interpret the input as a literal string value when it doesn't look like
         // anything else (like a number, boolean, etc.), it's important to avoid misunderstandings, and throw exception
         // in suspicious situations. The user can always quote the string value if we are "too smart". But he will
@@ -133,7 +133,7 @@ public final class DataModelParser {
                 if (value.indexOf('T') > 1 || (dashIdx > 1 && colonIdx > dashIdx)) {
                     try {
                         return new Timestamp(
-                                DateUtil.parseISO8601DateTime(value, DateUtil.UTC, calToDateConverter).getTime());
+                                DateUtil.parseISO8601DateTime(value, timeZone, calToDateConverter).getTime());
                     } catch (DateParseException pExc) {
                         attemptedTemporalType = "date-time";
                         attemptedTemportalPExc = pExc;
@@ -141,7 +141,7 @@ public final class DataModelParser {
                 } else if (dashIdx > 1) {
                     try {
                         return new java.sql.Date(
-                                DateUtil.parseISO8601Date(value, DateUtil.UTC, calToDateConverter).getTime());
+                                DateUtil.parseISO8601Date(value, timeZone, calToDateConverter).getTime());
                     } catch (DateParseException pExc) {
                         attemptedTemporalType = "date";
                         attemptedTemportalPExc = pExc;
@@ -149,7 +149,7 @@ public final class DataModelParser {
                 } else if (colonIdx > 1) { 
                     try {
                         return new Time(
-                                DateUtil.parseISO8601Time(value, DateUtil.UTC, calToDateConverter).getTime());
+                                DateUtil.parseISO8601Time(value, timeZone, calToDateConverter).getTime());
                     } catch (DateParseException pExc) {
                         attemptedTemporalType = "time";
                         attemptedTemportalPExc = pExc;

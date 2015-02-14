@@ -1,7 +1,9 @@
 package com.kenshoo.freemarker.util;
 
+import java.util.TimeZone;
+
 /**
- * Thrown by {@link DataModelParser#parse(String)}.
+ * Thrown by {@link DataModelParser#parse(String, TimeZone)}.
  */
 public class DataModelParsingException extends Exception {
 

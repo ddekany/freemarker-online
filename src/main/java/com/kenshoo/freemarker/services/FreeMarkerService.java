@@ -100,6 +100,13 @@ public class FreeMarkerService {
         this.outputLengthLimit = outputLengthLimit;
     }
     
+    /**
+     * Returns the time zone used by the FreeMarker templates.
+     */
+    public TimeZone getFreeMarkerTimeZone() {
+        return freeMarkerConfig.getTimeZone();
+    }
+    
     private FreeMarkerServiceResponse createFailureResponse(Throwable e) {
         logger.debug("The template had error(s)", e);
         return new FreeMarkerServiceResponse.Builder().buildForFailure(e);
