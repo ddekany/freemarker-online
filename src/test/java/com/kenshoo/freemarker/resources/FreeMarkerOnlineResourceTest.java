@@ -27,7 +27,8 @@ public class FreeMarkerOnlineResourceTest {
 
     private static final String ERROR_DESCRIPTION = "Error description";
     private static final String DATA_MODEL = "x=1";
-    private static final String WRONG_DATA_MODEL = "x=[";
+    private static final String MALFORMED_DATA_MODEL_VARIABLE_NAME = "problematicVariable";
+    private static final String MALFORMED_DATA_MODEL = MALFORMED_DATA_MODEL_VARIABLE_NAME + "=[";
     private static final String TEMPLATE = "Template";
     private static final String RESULT = "Result";
 
@@ -78,14 +79,51 @@ public class FreeMarkerOnlineResourceTest {
         assertEquals(view.getResultType(), FreeMarkerOnlineViewResultType.TEMPLATE_ERROR);
         assertThat(view.getResult(), containsString(ERROR_DESCRIPTION));
     }
+    
+    @Test
+    public void testTooLongTemplate() {
+        final String veryLongTemplate = create30KString();
+        
+        FreeMarkerOnlineView view = freeMarkerOnlineResultResource.formResult(veryLongTemplate, DATA_MODEL);
+        assertEquals(view.getTemplate(), veryLongTemplate);
+        assertEquals(view.getDataModel(), DATA_MODEL);
+        assertEquals(view.getResultType(), FreeMarkerOnlineViewResultType.TEMPLATE_ERROR);
+        assertThat(view.getResult(), containsString("template"));
+        assertThat(view.getResult(), containsString("limit"));
+    }
 
     @Test
-    public void testWrongDataModel() {
-        FreeMarkerOnlineView view = freeMarkerOnlineResultResource.formResult(TEMPLATE, WRONG_DATA_MODEL);
+    public void testMalformedDataModel() {
+        FreeMarkerOnlineView view = freeMarkerOnlineResultResource.formResult(TEMPLATE, MALFORMED_DATA_MODEL);
         assertEquals(view.getTemplate(), TEMPLATE);
-        assertEquals(view.getDataModel(), WRONG_DATA_MODEL);
+        assertEquals(view.getDataModel(), MALFORMED_DATA_MODEL);
         assertEquals(view.getResultType(), FreeMarkerOnlineViewResultType.DATA_MODEL_ERROR);
         assertThat(view.getResult(), containsString("data model"));
+        assertThat(view.getResult(), containsString(MALFORMED_DATA_MODEL_VARIABLE_NAME));
+    }
+
+    @Test
+    public void testTooLongDataModel() {
+        final String veryLongDataModel = create30KString();
+        
+        FreeMarkerOnlineView view = freeMarkerOnlineResultResource.formResult(TEMPLATE, veryLongDataModel);
+        assertEquals(view.getTemplate(), TEMPLATE);
+        assertEquals(view.getDataModel(), veryLongDataModel);
+        assertEquals(view.getResultType(), FreeMarkerOnlineViewResultType.DATA_MODEL_ERROR);
+        assertThat(view.getResult(), containsString("data model"));
+        assertThat(view.getResult(), containsString("limit"));
+    }
+
+    private String create30KString() {
+        final String veryLongDataModel;
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 30000 / 10; i++) {
+                sb.append("0123456789");
+            }
+            veryLongDataModel = sb.toString();
+        }
+        return veryLongDataModel;
     }
     
 }
