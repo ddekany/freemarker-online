@@ -14,6 +14,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.kenshoo.freemarker.services.FreeMarkerService;
 import com.kenshoo.freemarker.services.FreeMarkerServiceResponse;
 import com.kenshoo.freemarker.view.FreeMarkerOnlineView;
+import com.kenshoo.freemarker.view.FreeMarkerOnlineViewResultType;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,7 +23,7 @@ import com.kenshoo.freemarker.view.FreeMarkerOnlineView;
  * Time: 11:23 PM
  */
 @RunWith(MockitoJUnitRunner.class)
-public class FreeMarkerOnlineResultResourceTest {
+public class FreeMarkerOnlineResourceTest {
 
     private static final String ERROR_DESCRIPTION = "Error description";
     private static final String DATA_MODEL = "x=1";
@@ -31,11 +32,31 @@ public class FreeMarkerOnlineResultResourceTest {
     private static final String RESULT = "Result";
 
     @InjectMocks
-    FreeMarkerOnlineResultResource freeMarkerOnlineResultResource;
+    FreeMarkerOnlineResource freeMarkerOnlineResultResource;
 
     @Mock
     FreeMarkerService freeMarkerService;
 
+    @Test
+    public void testInitialForm() {
+        when(freeMarkerService.calculateTemplateOutput(anyString(), anyMap())).thenThrow(new AssertionError());
+        FreeMarkerOnlineView view = freeMarkerOnlineResultResource.blankForm();
+        assertEquals(view.getTemplate(), "");
+        assertEquals(view.getDataModel(), "");
+        assertEquals(view.getResultType(), FreeMarkerOnlineViewResultType.BLANK);
+        assertNull(view.getResult());
+    }
+    
+    @Test
+    public void testPostedBlankForm() {
+        when(freeMarkerService.calculateTemplateOutput(anyString(), anyMap())).thenThrow(new AssertionError());
+        FreeMarkerOnlineView view = freeMarkerOnlineResultResource.formResult(null, null);
+        assertEquals(view.getTemplate(), "");
+        assertEquals(view.getDataModel(), "");
+        assertEquals(view.getResultType(), FreeMarkerOnlineViewResultType.BLANK);
+        assertNull(view.getResult());
+    }
+    
     @Test
     public void testGoodResult() {
         when(freeMarkerService.calculateTemplateOutput(anyString(), anyMap())).thenReturn(
@@ -43,6 +64,7 @@ public class FreeMarkerOnlineResultResourceTest {
         FreeMarkerOnlineView view = freeMarkerOnlineResultResource.formResult(TEMPLATE, DATA_MODEL);
         assertEquals(view.getTemplate(), TEMPLATE);
         assertEquals(view.getDataModel(), DATA_MODEL);
+        assertEquals(view.getResultType(), FreeMarkerOnlineViewResultType.TEMPLATE_OUTPUT);
         assertEquals(view.getResult(), RESULT);
     }
 
@@ -53,6 +75,7 @@ public class FreeMarkerOnlineResultResourceTest {
         FreeMarkerOnlineView view = freeMarkerOnlineResultResource.formResult(TEMPLATE, DATA_MODEL);
         assertEquals(view.getTemplate(), TEMPLATE);
         assertEquals(view.getDataModel(), DATA_MODEL);
+        assertEquals(view.getResultType(), FreeMarkerOnlineViewResultType.TEMPLATE_ERROR);
         assertThat(view.getResult(), containsString(ERROR_DESCRIPTION));
     }
 
@@ -61,6 +84,7 @@ public class FreeMarkerOnlineResultResourceTest {
         FreeMarkerOnlineView view = freeMarkerOnlineResultResource.formResult(TEMPLATE, WRONG_DATA_MODEL);
         assertEquals(view.getTemplate(), TEMPLATE);
         assertEquals(view.getDataModel(), WRONG_DATA_MODEL);
+        assertEquals(view.getResultType(), FreeMarkerOnlineViewResultType.DATA_MODEL_ERROR);
         assertThat(view.getResult(), containsString("data model"));
     }
     

@@ -56,9 +56,9 @@ dependencies {
 
     compile libraries.freemarker
     compile libraries.jackson_databind
+    compile libraries.commonLangs
 
     testCompile libraries.selenium_java
-
 }
 
 compileJava {
