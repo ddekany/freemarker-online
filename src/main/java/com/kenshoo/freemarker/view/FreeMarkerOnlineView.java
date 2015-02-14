@@ -1,5 +1,7 @@
 package com.kenshoo.freemarker.view;
 
+import java.nio.charset.Charset;
+
 import org.springframework.util.Assert;
 
 import com.yammer.dropwizard.views.View;
@@ -27,7 +29,7 @@ public class FreeMarkerOnlineView extends View {
     }
 
     public FreeMarkerOnlineView(FreeMarkerOnlineViewResultType resultType, String resultText, String template, String dataModel) {
-        super("/view/freemarker-online.ftl");
+        super("/view/freemarker-online.ftl", Charset.forName("utf-8"));
         Assert.notNull(resultType);
         this.resultType = resultType;
         this.result = decorateResultText(resultText, resultType);
