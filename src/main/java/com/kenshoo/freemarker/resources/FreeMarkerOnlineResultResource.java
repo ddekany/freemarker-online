@@ -4,11 +4,9 @@ import com.kenshoo.freemarker.services.FreeMarkerService;
 import com.kenshoo.freemarker.services.FreeMarkerServiceResponse;
 import com.kenshoo.freemarker.util.DataModelParser;
 import com.kenshoo.freemarker.util.DataModelParsingException;
+import com.kenshoo.freemarker.util.ExceptionUtils;
 import com.kenshoo.freemarker.view.FreeMarkerOnlineView;
 import com.kenshoo.freemarker.view.FreeMarkerOnlineViewResultType;
-
-import freemarker.core.ParseException;
-import freemarker.template.TemplateException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -59,31 +57,9 @@ public class FreeMarkerOnlineResultResource {
         } else {
             Throwable failureReason = freeMarkerServiceResponse.getFailureReason();
             return new FreeMarkerOnlineView(
-                    FreeMarkerOnlineViewResultType.TEMPLATE_ERROR, getMessageWithCauses(failureReason),
+                    FreeMarkerOnlineViewResultType.TEMPLATE_ERROR, ExceptionUtils.getMessageWithCauses(failureReason),
                     templateInput, dataModelInput);
         }
-    }
-
-    /**
-     * The error message (and sometimes also the class), and then the same with the cause exception, and so on. Doesn't
-     * contain the stack trace or other location information.
-     */
-    private static String getMessageWithCauses(final Throwable exc) {
-        StringBuilder sb = new StringBuilder();
-        
-        Throwable curExc = exc;
-        while (curExc != null) {
-            if (curExc != exc) {
-                sb.append("\n\nCaused by:\n");
-            }
-            String msg = curExc.getMessage();
-            if (msg == null || !(curExc instanceof TemplateException || curExc instanceof ParseException)) {
-                sb.append(curExc.getClass().getName()).append(": ");
-            }
-            sb.append(msg);
-            curExc = curExc.getCause();
-        }
-        return sb.toString();
     }
 
 }
