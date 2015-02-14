@@ -1,3 +1,4 @@
+<#escape x as x?html>
 <!DOCTYPE html>
 <html>
 <head>
@@ -45,10 +46,10 @@
 
         <div class="content">
             <form id="templateAndModelForm" method="post" class="pure-form pure-form-stacked">
-                <label for="template">Template <span class="faint">(FreeMarker {{freeMarkerVersion}})</span></label>
+                <label for="template">Template <span class="faint">(FreeMarker ${freeMarkerVersion})</span></label>
                 <textarea name="template" class="pure-input-1 source-code"
-                        placeholder="Enter template, like: Hello ${user}!"
-                >{{template}}</textarea>
+                        placeholder="Enter template, like: Hello ${r'${user}'}!"
+                >${template}</textarea>
     
                 <label for="template">
                     Data model
@@ -69,19 +70,19 @@ someMap = { "JSON syntax": true, "nestedList": [1, 2, 3] }
 someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
                 <textarea name="dataModel" class="pure-input-1 source-code"
                         placeholder='Enter one or more assignments (e.g. user = John Doe), starting each in its own line.'
-                >{{dataModel}}</textarea>
+                >${dataModel}</textarea>
     
                 <div class="formBottomButtonsContainer">
 	                <input id="eval-btn" type="submit" value="Evaluate" class="pure-button pure-button-primary"/>
 	                &nbsp; <span class="faint">Ctrl+Enter in input fields will submit this form too</span>
                 </div>
                 
-                {{#hasResult}}
+                <#if hasResult>
                     <div class="resultContainer">
                         <label for="result">Result</label>
-                        <textarea id="result" class="pure-input-1 source-code {{#errorResult}} error{{/errorResult}}" readonly>{{result}}</textarea>
+                        <textarea id="result" class="pure-input-1 source-code <#if errorResult> error</#if>" readonly>${result}</textarea>
                     </div>
-                {{/hasResult}}
+                </#if>
             </form>
         </div><!-- content -->
         
@@ -104,3 +105,4 @@ someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
 </div><!-- layout -->
 </body>
 </html>
+</#escape>

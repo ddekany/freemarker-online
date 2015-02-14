@@ -27,7 +27,7 @@ public class FreeMarkerOnlineView extends View {
     }
 
     public FreeMarkerOnlineView(FreeMarkerOnlineViewResultType resultType, String resultText, String template, String dataModel) {
-        super("/view/freemarker-online.mustache");
+        super("/view/freemarker-online.ftl");
         Assert.notNull(resultType);
         this.resultType = resultType;
         this.result = decorateResultText(resultText, resultType);
