@@ -56,3 +56,15 @@ textarea.source-code {
 	resize: none !important;
     line-height: 1em !important;
 }
+
+.hiddenByDefault {
+   display: none;
+}
+
+#dataModelExamples {
+	background: #eee;
+	font-family: monospace;
+	font-size: 1em;
+	padding: 4px;
+	margin: 0;
+}
