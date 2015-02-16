@@ -38,7 +38,7 @@ import freemarker.template.TemplateExceptionHandler;
 @Service
 public class FreeMarkerService implements InitializingBean {
 
-    private static final int DEFAULT_OUTPUT_LENGTH_LIMIT = 100000;
+    private static final int DEFAULT_MAX_OUTPUT_LENGTH = 100000;
     private static final int DEFAULT_MAX_THREADS = Math.max(2,
             (int) Math.round(Runtime.getRuntime().availableProcessors() * 3.0 / 4));
     /** Not implemented yet, will need 2.3.22, even then a _CoreAPI call. */
@@ -46,7 +46,7 @@ public class FreeMarkerService implements InitializingBean {
     private static final int DEFAULT_MAX_QUEUE_LENGTH = (int) (30000 / MAX_TEMPLATE_EXECUTION_TIME);
     private static final long THREAD_KEEP_ALIVE_TIME = 4 * 1000;
     
-    private static final String OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATION = "\n----------\n"
+    private static final String MAX_OUTPUT_LENGTH_EXCEEDED_TERMINATION = "\n----------\n"
             + "Aborted template processing, as the output length has exceeded the {0} character limit set for "
             + "this service.";
     
@@ -56,7 +56,7 @@ public class FreeMarkerService implements InitializingBean {
     
     private ExecutorService templateExecutor;
     
-    private int outputLengthLimit = DEFAULT_OUTPUT_LENGTH_LIMIT;
+    private int maxOutputLength = DEFAULT_MAX_OUTPUT_LENGTH;
     
     private int maxThreads = DEFAULT_MAX_THREADS;
     private int maxQueueLength = DEFAULT_MAX_QUEUE_LENGTH;
@@ -96,12 +96,12 @@ public class FreeMarkerService implements InitializingBean {
             }
     }
     
-    public int getOutputLengthLimit() {
-        return outputLengthLimit;
+    public int getMaxOutputLength() {
+        return maxOutputLength;
     }
 
-    public void setOutputLengthLimit(int outputLengthLimit) {
-        this.outputLengthLimit = outputLengthLimit;
+    public void setMaxOutputLength(int maxOutputLength) {
+        this.maxOutputLength = maxOutputLength;
     }
 
     public int getMaxThreads() {
@@ -168,13 +168,13 @@ public class FreeMarkerService implements InitializingBean {
             boolean resultTruncated;
             StringWriter writer = new StringWriter();
             try {
-                template.process(dataModel, new LengthLimitedWriter(writer, outputLengthLimit));
+                template.process(dataModel, new LengthLimitedWriter(writer, maxOutputLength));
                 resultTruncated = false;
             } catch (LengthLimitExceededException e) {
                 // Not really an error, we just cut the output here.
                 resultTruncated = true;
-                writer.write(new MessageFormat(OUTPUT_LENGTH_LIMIT_EXCEEDED_TERMINATION, Locale.US)
-                        .format(new Object[] { outputLengthLimit }));
+                writer.write(new MessageFormat(MAX_OUTPUT_LENGTH_EXCEEDED_TERMINATION, Locale.US)
+                        .format(new Object[] { maxOutputLength }));
                 // Falls through
             } catch (TemplateException e) {
                 // Expected (part of normal operation)

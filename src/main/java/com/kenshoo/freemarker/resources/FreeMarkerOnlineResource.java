@@ -35,14 +35,14 @@ import javax.ws.rs.core.MediaType;
 @Component
 public class FreeMarkerOnlineResource {
 
-    private static final int TEMPLATE_INPUT_LENGTH_LIMIT = 10000;
+    private static final int MAX_TEMPLATE_INPUT_LENGTH = 10000;
     
-    private static final int DATA_MODEL_INPUT_LENGTH_LIMIT = 10000;
+    private static final int MAX_DATA_MODEL_INPUT_LENGTH = 10000;
 
-    private static final String TEMPLATE_LENGTH_LIMIT_EXCEEDED_ERROR_MESSAGE
+    private static final String MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE
             = "The template length has exceeded the {0} character limit set for this service.";
     
-    private static final String DATA_MODEL_LENGTH_LIMIT_EXCEEDED_ERROR_MESSAGE
+    private static final String MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE
             = "The data model length has exceeded the {0} character limit set for this service.";
 
     private static final String SERVICE_OVERBURDEN_ERROR_MESSAGE
@@ -67,11 +67,11 @@ public class FreeMarkerOnlineResource {
             return blankForm();
         }
         
-        if (dataModelInput.length() > DATA_MODEL_INPUT_LENGTH_LIMIT) {
+        if (dataModelInput.length() > MAX_DATA_MODEL_INPUT_LENGTH) {
             return new FreeMarkerOnlineView(
                     FreeMarkerOnlineViewResultType.DATA_MODEL_ERROR,
-                    new MessageFormat(DATA_MODEL_LENGTH_LIMIT_EXCEEDED_ERROR_MESSAGE, Locale.US)
-                            .format(new Object[] { DATA_MODEL_INPUT_LENGTH_LIMIT }),
+                    new MessageFormat(MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, Locale.US)
+                            .format(new Object[] { MAX_DATA_MODEL_INPUT_LENGTH }),
                     templateInput, dataModelInput);
         }
         Map<String, Object> dataModel;
@@ -83,11 +83,11 @@ public class FreeMarkerOnlineResource {
                     templateInput, dataModelInput);
         }
         
-        if (templateInput.length() > TEMPLATE_INPUT_LENGTH_LIMIT) {
+        if (templateInput.length() > MAX_TEMPLATE_INPUT_LENGTH) {
             return new FreeMarkerOnlineView(
                     FreeMarkerOnlineViewResultType.TEMPLATE_ERROR,
-                    new MessageFormat(TEMPLATE_LENGTH_LIMIT_EXCEEDED_ERROR_MESSAGE, Locale.US)
-                            .format(new Object[] { TEMPLATE_INPUT_LENGTH_LIMIT }),
+                    new MessageFormat(MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, Locale.US)
+                            .format(new Object[] { MAX_TEMPLATE_INPUT_LENGTH }),
                     templateInput, dataModelInput);
         }
         FreeMarkerServiceResponse freeMarkerServiceResponse;

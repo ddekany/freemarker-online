@@ -98,7 +98,7 @@ public class FreeMarkerServiceTest {
 
     @Test
     public void testResultAlmostTruncation() {
-        freeMarkerService.setOutputLengthLimit(5);
+        freeMarkerService.setMaxOutputLength(5);
         FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateTemplateOutput(
                 TRUNCATION_TEST_TEMPLATE, Collections.<String, Object>emptyMap());
         assertThat(serviceResponse.isSuccesful(), is(true));
@@ -108,15 +108,15 @@ public class FreeMarkerServiceTest {
 
     @Test
     public void testResultTruncation() {
-        freeMarkerService.setOutputLengthLimit(4);
+        freeMarkerService.setMaxOutputLength(4);
         FreeMarkerServiceResponse serviceResponse = freeMarkerService.calculateTemplateOutput(
                 TRUNCATION_TEST_TEMPLATE, Collections.<String, Object>emptyMap());
         assertThat(serviceResponse.isSuccesful(), is(true));
         assertThat(serviceResponse.isTemplateOutputTruncated(), is(true));
         assertThat(serviceResponse.getTemplateOutput(),
-                startsWith(TRUNCATION_TEST_TEMPLATE.substring(0, freeMarkerService.getOutputLengthLimit())));
-        assertThat(serviceResponse.getTemplateOutput().charAt(freeMarkerService.getOutputLengthLimit()),
-                not(equalTo(TRUNCATION_TEST_TEMPLATE.charAt(freeMarkerService.getOutputLengthLimit()))));
+                startsWith(TRUNCATION_TEST_TEMPLATE.substring(0, freeMarkerService.getMaxOutputLength())));
+        assertThat(serviceResponse.getTemplateOutput().charAt(freeMarkerService.getMaxOutputLength()),
+                not(equalTo(TRUNCATION_TEST_TEMPLATE.charAt(freeMarkerService.getMaxOutputLength()))));
     }
     
     @Test
