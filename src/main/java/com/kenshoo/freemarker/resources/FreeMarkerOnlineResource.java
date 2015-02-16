@@ -3,6 +3,7 @@ package com.kenshoo.freemarker.resources;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.RejectedExecutionException;
 
 import com.kenshoo.freemarker.services.FreeMarkerService;
 import com.kenshoo.freemarker.services.FreeMarkerServiceResponse;
@@ -43,6 +44,9 @@ public class FreeMarkerOnlineResource {
     
     private static final String DATA_MODEL_LENGTH_LIMIT_EXCEEDED_ERROR_MESSAGE
             = "The data model length has exceeded the {0} character limit set for this service.";
+
+    private static final String SERVICE_OVERBURDEN_ERROR_MESSAGE
+            = "Sorry, the service is overburden and couldn't handle your request now. Try again later.";
     
     @Autowired
     private FreeMarkerService freeMarkerService;
@@ -86,8 +90,14 @@ public class FreeMarkerOnlineResource {
                             .format(new Object[] { TEMPLATE_INPUT_LENGTH_LIMIT }),
                     templateInput, dataModelInput);
         }
-        FreeMarkerServiceResponse freeMarkerServiceResponse = freeMarkerService.calculateTemplateOutput(
-                templateInput, dataModel);
+        FreeMarkerServiceResponse freeMarkerServiceResponse;
+        try {
+            freeMarkerServiceResponse = freeMarkerService.calculateTemplateOutput(templateInput, dataModel);
+        } catch (RejectedExecutionException e) {
+            return new FreeMarkerOnlineView(
+                    FreeMarkerOnlineViewResultType.TEMPLATE_ERROR, SERVICE_OVERBURDEN_ERROR_MESSAGE,
+                    templateInput, dataModelInput);
+        }
         if (freeMarkerServiceResponse.isSuccesful()){
             return new FreeMarkerOnlineView(
                     FreeMarkerOnlineViewResultType.TEMPLATE_OUTPUT, freeMarkerServiceResponse.getTemplateOutput(),
