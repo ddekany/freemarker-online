@@ -49,7 +49,7 @@ public class FreeMarkerServiceTest {
     public void initializeSpringBeans() {
         freeMarkerService.setMaxQueueLength(MAX_QUEUE_LENGTH);
         freeMarkerService.setMaxThreads(MAX_THREADS);
-        freeMarkerService.afterPropertiesSet();
+        freeMarkerService.postConstruct();
     }
 
     @Test

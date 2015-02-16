@@ -13,10 +13,11 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
+
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
 import com.kenshoo.freemarker.util.LengthLimitExceededException;
@@ -36,7 +37,7 @@ import freemarker.template.TemplateExceptionHandler;
  * Time: 10:15 AM
  */
 @Service
-public class FreeMarkerService implements InitializingBean {
+public class FreeMarkerService {
 
     private static final int DEFAULT_MAX_OUTPUT_LENGTH = 100000;
     private static final int DEFAULT_MAX_THREADS = Math.max(2,
@@ -132,8 +133,8 @@ public class FreeMarkerService implements InitializingBean {
         return new FreeMarkerServiceResponse.Builder().buildForFailure(e);
     }
 
-    @Override
-    public void afterPropertiesSet() {
+    @PostConstruct
+    public void postConstruct() {
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
                 maxThreads, maxThreads,
                 THREAD_KEEP_ALIVE_TIME, TimeUnit.MILLISECONDS,
