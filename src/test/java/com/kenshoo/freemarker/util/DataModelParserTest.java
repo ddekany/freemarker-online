@@ -6,12 +6,10 @@ import static org.junit.Assert.*;
 import java.math.BigDecimal;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -23,25 +21,25 @@ import com.google.common.collect.ImmutableMap;
 import freemarker.template.utility.DateUtil;
 
 public class DataModelParserTest {
-
+    
     @Test
     public void testEmpty() throws DataModelParsingException {
-        assertTrue(DataModelParser.parse("").isEmpty());
-        assertTrue(DataModelParser.parse(" \n ").isEmpty());
+        assertTrue(DataModelParser.parse("", DateUtil.UTC).isEmpty());
+        assertTrue(DataModelParser.parse(" \n ", DateUtil.UTC).isEmpty());
     }
 
     @Test
     public void testSingleAssignment() throws DataModelParsingException {
-        assertEquals(ImmutableMap.of("n", "v"), DataModelParser.parse("n=v"));
-        assertEquals(ImmutableMap.of("n", "v"), DataModelParser.parse("\n\n\tn\t= v"));
-        assertEquals(ImmutableMap.of("longerN", "longer v"), DataModelParser.parse("longerN=longer v"));
-        assertEquals(ImmutableMap.of("a:b.c-d$@", "foo bar\nbaaz"), DataModelParser.parse("a:b.c-d$@ = foo bar\nbaaz"));
+        assertEquals(ImmutableMap.of("n", "v"), DataModelParser.parse("n=v", DateUtil.UTC));
+        assertEquals(ImmutableMap.of("n", "v"), DataModelParser.parse("\n\n\tn\t= v", DateUtil.UTC));
+        assertEquals(ImmutableMap.of("longerN", "longer v"), DataModelParser.parse("longerN=longer v", DateUtil.UTC));
+        assertEquals(ImmutableMap.of("a:b.c-d$@", "foo bar\nbaaz"), DataModelParser.parse("a:b.c-d$@ = foo bar\nbaaz", DateUtil.UTC));
     }
 
     @Test
     public void testNotBlankButHasNoAssignment() {
         try {
-            DataModelParser.parse("x");
+            DataModelParser.parse("x", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("must start with an assignment"));
@@ -51,7 +49,7 @@ public class DataModelParserTest {
     @Test
     public void testNoLinebreakBeforeEquals() {
         try {
-            DataModelParser.parse("x\n=y");
+            DataModelParser.parse("x\n=y", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("must start with an assignment"));
@@ -61,11 +59,11 @@ public class DataModelParserTest {
     @Test
     public void testMultipleAssignments() throws DataModelParsingException {
         assertEquals(ImmutableMap.of("n1", "v1", "n2", "v2", "n3", "v3"),
-                DataModelParser.parse("n1=v1\nn2=v2\nn3=v3"));
+                DataModelParser.parse("n1=v1\nn2=v2\nn3=v3", DateUtil.UTC));
         assertEquals(ImmutableMap.of("n1", "v1", "n2", "v2", "n3", "v3"),
-                DataModelParser.parse(" n1 = v1 \r\n\r\n\tn2=v2\nn3 = v3\n\n"));
+                DataModelParser.parse(" n1 = v1 \r\n\r\n\tn2=v2\nn3 = v3\n\n", DateUtil.UTC));
         assertEquals(ImmutableMap.of("n1", "=\n=v", "n2", "l1\nl2\n\nl3", "n3", "v3"),
-                DataModelParser.parse("n1==\n=v \n n2=l1\nl2\n\nl3\nn3=v3"));
+                DataModelParser.parse("n1==\n=v \n n2=l1\nl2\n\nl3\nn3=v3", DateUtil.UTC));
     }
 
     @Test
@@ -83,21 +81,22 @@ public class DataModelParserTest {
                         + "b=foo\nbar\n"
                         + "c=foo\t\"bar\"\n"
                         + "d=\"foo\\t\\\"bar\\\"\"\n"
-                        + "e=\"Foo's\""));
+                        + "e=\"Foo's\"",
+                        DateUtil.UTC));
         try {
-            DataModelParser.parse("a=\"foo");
+            DataModelParser.parse("a=\"foo", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("quoted"));
         }
         try {
-            DataModelParser.parse("a='foo'");
+            DataModelParser.parse("a='foo'", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("quoted"));
         }
         try {
-            DataModelParser.parse("a=\"\\x\"");
+            DataModelParser.parse("a=\"\\x\"", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("escape"));
@@ -114,9 +113,9 @@ public class DataModelParserTest {
                     "d", BigDecimal.valueOf(1.5),
                     "e", BigDecimal.valueOf(-0.125)
                 ),
-                DataModelParser.parse("a=1\nb=1.5\nc=-1.5\nd=+1.5\ne=-12.5e-2"));
+                DataModelParser.parse("a=1\nb=1.5\nc=-1.5\nd=+1.5\ne=-12.5e-2", DateUtil.UTC));
         try {
-            DataModelParser.parse("a=1,5");
+            DataModelParser.parse("a=1,5", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("Malformed number"));
@@ -133,14 +132,14 @@ public class DataModelParserTest {
                 "c", Double.NEGATIVE_INFINITY,
                 "d", Double.POSITIVE_INFINITY
             ),
-            DataModelParser.parse("a=NaN\nb=Infinity\nc=-Infinity\nd=+Infinity"));
+            DataModelParser.parse("a=NaN\nb=Infinity\nc=-Infinity\nd=+Infinity", DateUtil.UTC));
     }
 
     @Test
     public void testBooleans() throws DataModelParsingException {
-        assertEquals(ImmutableMap.of("a", true, "b", false), DataModelParser.parse("a=true\nb=false"));
+        assertEquals(ImmutableMap.of("a", true, "b", false), DataModelParser.parse("a=true\nb=false", DateUtil.UTC));
         try {
-            DataModelParser.parse("a=True");
+            DataModelParser.parse("a=True", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("true"));
@@ -149,7 +148,7 @@ public class DataModelParserTest {
     
     @Test
     public void testTemporals() throws DataModelParsingException {
-        final Map<String, Object> dm = DataModelParser.parse("a=2014-02-12T01:02:03Z\nb=2014-02-12\nc=01:02:03Z");
+        final Map<String, Object> dm = DataModelParser.parse("a=2014-02-12T01:02:03Z\nb=2014-02-12\nc=01:02:03Z", DateUtil.UTC);
         
         final GregorianCalendar cal = new GregorianCalendar(DateUtil.UTC);
         cal.clear();
@@ -170,19 +169,19 @@ public class DataModelParserTest {
         assertEquals(dm.get("c"), c);
         
         try {
-            DataModelParser.parse("a=2012T123");
+            DataModelParser.parse("a=2012T123", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("ISO 8601 date-time"));
         }
         try {
-            DataModelParser.parse("a=2012-0102");
+            DataModelParser.parse("a=2012-0102", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("ISO 8601 date"));
         }
         try {
-            DataModelParser.parse("a=25:00");
+            DataModelParser.parse("a=25:00", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("ISO 8601 time"));
@@ -195,12 +194,13 @@ public class DataModelParserTest {
                 "n = {\n"
                 + "\t\"a\": 1,\n"
                 + "\t\"b\": 2\n"
-                + "}")
+                + "}",
+                DateUtil.UTC)
                 .get("n");
         assertEquals(ImmutableMap.of("a", 1, "b", 2), map);
         assertThat(map, instanceOf(LinkedHashMap.class));
         try {
-            DataModelParser.parse("n={1:2}");
+            DataModelParser.parse("n={1:2}", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("JSON"));
@@ -209,11 +209,11 @@ public class DataModelParserTest {
     
     @Test
     public void testLists() throws DataModelParsingException {
-        final Object list = DataModelParser.parse("n=[1, 2]").get("n");
+        final Object list = DataModelParser.parse("n=[1, 2]", DateUtil.UTC).get("n");
         assertEquals(ImmutableList.of(1, 2), list);
         assertThat(list, instanceOf(List.class));
         try {
-            DataModelParser.parse("n=[");
+            DataModelParser.parse("n=[", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("JSON"));
@@ -222,14 +222,14 @@ public class DataModelParserTest {
 
     @Test
     public void testXML() throws DataModelParsingException {
-        final Object doc = DataModelParser.parse("n=<e xmlns='foo:/bar' a='123'>text</e>").get("n");
+        final Object doc = DataModelParser.parse("n=<e xmlns='foo:/bar' a='123'>text</e>", DateUtil.UTC).get("n");
         assertThat(doc, instanceOf(Document.class));
         final Node firstChild = ((Document) doc).getFirstChild();
         assertEquals("e", firstChild.getNodeName());
         assertEquals("foo:/bar", firstChild.getNamespaceURI());
         
         try {
-            DataModelParser.parse("n=<ns:e />");
+            DataModelParser.parse("n=<ns:e />", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("XML"));
@@ -238,9 +238,9 @@ public class DataModelParserTest {
     
     @Test
     public void testNull() throws DataModelParsingException {
-        assertNull(DataModelParser.parse("n=null").get("n"));
+        assertNull(DataModelParser.parse("n=null", DateUtil.UTC).get("n"));
         try {
-            DataModelParser.parse("a=NULL");
+            DataModelParser.parse("a=NULL", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("null"));
@@ -250,13 +250,13 @@ public class DataModelParserTest {
     @Test
     public void testEmptyValue() throws DataModelParsingException {
         try {
-            DataModelParser.parse("n=");
+            DataModelParser.parse("n=", DateUtil.UTC);
             fail();
         } catch (DataModelParsingException e) {
             assertThat(e.getMessage(), containsString("Empty"));
         }
         
-        assertEquals("", DataModelParser.parse("n=\"\"").get("n"));
+        assertEquals("", DataModelParser.parse("n=\"\"", DateUtil.UTC).get("n"));
     }
     
 }

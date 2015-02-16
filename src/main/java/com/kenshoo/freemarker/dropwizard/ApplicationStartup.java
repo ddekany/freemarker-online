@@ -37,6 +37,7 @@ public class ApplicationStartup extends SpringService<SpringConfiguration> {
         bootstrap.setName("freemarker-online");
         bootstrap.addBundle(new ViewBundle());
         bootstrap.addBundle(new AssetsBundle("/assets/css", "/css"));
+        bootstrap.addBundle(new AssetsBundle("/assets/js", "/js"));
     }
 
 }
