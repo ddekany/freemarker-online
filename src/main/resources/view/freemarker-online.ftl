@@ -53,7 +53,7 @@
     
                 <label for="template">
                     Data model
-                    (<a id="showHideDataModelExamples" href="#"><!--
+                    (<a id="showHideDataModelExamples" href="#" tabindex="-1"><!--
                     --><span id="showDataModelExamplesLabel">show</span><!--
                     --><span id="hideDataModelExamplesLabel" class="hiddenByDefault">hide</span>
                     examples</a>)
