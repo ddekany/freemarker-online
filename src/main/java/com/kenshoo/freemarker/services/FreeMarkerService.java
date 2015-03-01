@@ -66,6 +66,7 @@ public class FreeMarkerService {
         freeMarkerConfig = new Configuration(Configuration.getVersion());
         freeMarkerConfig.setNewBuiltinClassResolver(TemplateClassResolver.ALLOWS_NOTHING_RESOLVER);
         freeMarkerConfig.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+        freeMarkerConfig.setLogTemplateExceptions(false);
         freeMarkerConfig.setLocale(Locale.US);
         freeMarkerConfig.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
         freeMarkerConfig.setOutputEncoding("UTF-8");
