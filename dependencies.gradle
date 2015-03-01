@@ -36,7 +36,7 @@ project.libraries = [
         selenium_java: 'org.seleniumhq.selenium:selenium-java:2.41.0',
 
         // Others
-        freemarker: 'org.freemarker:freemarker:2.3.21',
+        freemarker: 'org.freemarker:freemarker:2.3.22',
         jackson_databind: "com.fasterxml.jackson.core:jackson-databind:$jackson_version",
         commonLangs: "org.apache.commons:commons-lang3:3.3.2"
 
