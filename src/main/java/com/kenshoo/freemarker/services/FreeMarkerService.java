@@ -85,16 +85,16 @@ public class FreeMarkerService {
      */
     public FreeMarkerServiceResponse calculateTemplateOutput(
         String templateSourceCode, Object dataModel) throws RejectedExecutionException {
-        Future<FreeMarkerServiceResponse> future;
         Objects.requireNonNull(templateExecutor,
-                "templateExecutor was null - may the Spring bean's afterPropertySet wasn't called");
-        future = templateExecutor.submit(new CalculateTemplateOutput(templateSourceCode, dataModel));
+                "templateExecutor was null - maybe the Spring bean's afterPropertySet wasn't called");
+        Future<FreeMarkerServiceResponse> future = templateExecutor.submit(
+                new CalculateTemplateOutput(templateSourceCode, dataModel));
         try {
             return future.get();
         } catch (InterruptedException e) {
-            throw new FreeMarkerServiceException("Templat execution task was interrupted", e);
+            throw new FreeMarkerServiceException("Template execution task was interrupted", e);
         } catch (ExecutionException e) {
-            throw new FreeMarkerServiceException("Templat execution task unexpectedly fauled", e.getCause());
+            throw new FreeMarkerServiceException("Template execution task unexpectedly failed", e.getCause());
         }
     }
     

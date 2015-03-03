@@ -69,7 +69,7 @@ someList = ["JSON", "syntax", 1, 2, 3 ]
 someMap = { "JSON syntax": true, "nestedList": [1, 2, 3] }
 someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
                 <textarea name="dataModel" class="pure-input-1 source-code"
-                        placeholder='Enter one or more assignments (e.g. user = John Doe), starting each in its own line.'
+                        placeholder='Enter one or more assignments (e.g., user = John Doe), starting each in its own line.'
                 >${dataModel}</textarea>
     
                 <div class="formBottomButtonsContainer">
