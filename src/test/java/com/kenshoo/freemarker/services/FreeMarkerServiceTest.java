@@ -7,7 +7,13 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +43,7 @@ public class FreeMarkerServiceTest {
     
     private static final int MAX_THREADS = 3;
     private static final int MAX_QUEUE_LENGTH = 2;
+    private static final int MAX_TEMPLATE_EXECUTION_TIME = 1500;
 
     private static final int BLOCKING_TEST_TIMEOUT = 5000;
     
@@ -50,6 +57,7 @@ public class FreeMarkerServiceTest {
         freeMarkerService.setMaxQueueLength(MAX_QUEUE_LENGTH);
         freeMarkerService.setMaxThreads(MAX_THREADS);
         freeMarkerService.postConstruct();
+        freeMarkerService.setMaxTemplateExecutionTime(MAX_TEMPLATE_EXECUTION_TIME);
     }
 
     @Test
@@ -120,7 +128,32 @@ public class FreeMarkerServiceTest {
     }
     
     @Test
-    public void serviceOverburdenTest() throws InterruptedException {
+    public void testTemplateExecutionTimeout() throws InterruptedException, ExecutionException {
+        freeMarkerService.setMaxTemplateExecutionTime(200);
+        
+        // To avoid blocking the CI server forever without giving error:
+        Future<FreeMarkerServiceResponse> future = Executors.newSingleThreadExecutor().submit(
+                new Callable<FreeMarkerServiceResponse>() {
+        
+                    @Override
+                    public FreeMarkerServiceResponse call() throws Exception {
+                        return freeMarkerService.calculateTemplateOutput(
+                                "<#list 1.. as _></#list>", Collections.<String, Object>emptyMap());
+                    }
+                    
+                });
+        FreeMarkerServiceResponse serviceResponse;
+        try {
+            serviceResponse = future.get(BLOCKING_TEST_TIMEOUT, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            throw new AssertionError("The template execution wasn't aborted (within the timeout).");
+        }
+        assertThat(serviceResponse.isSuccesful(), is(false));
+        assertThat(serviceResponse.getFailureReason(), instanceOf(TimeoutException.class));
+    }
+    
+    @Test
+    public void testServiceOverburden() throws InterruptedException {
         final BlockerDirective blocker = new BlockerDirective();
         final Map<String, BlockerDirective> blockerDataModel = Collections.singletonMap("blocker", blocker);
         try {

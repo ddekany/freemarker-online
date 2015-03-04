@@ -12,9 +12,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import com.kenshoo.freemarker.util.LengthLimitExceededException;
 import com.kenshoo.freemarker.util.LengthLimitedWriter;
 
+import freemarker.core.FreeMarkerInternalsAccessor;
 import freemarker.core.ParseException;
 import freemarker.core.TemplateClassResolver;
 import freemarker.template.Configuration;
@@ -43,9 +46,12 @@ public class FreeMarkerService {
     private static final int DEFAULT_MAX_THREADS = Math.max(2,
             (int) Math.round(Runtime.getRuntime().availableProcessors() * 3.0 / 4));
     /** Not implemented yet, will need 2.3.22, even then a _CoreAPI call. */
-    private static final long MAX_TEMPLATE_EXECUTION_TIME = 2000;
-    private static final int DEFAULT_MAX_QUEUE_LENGTH = (int) (30000 / MAX_TEMPLATE_EXECUTION_TIME);
+    private static final long DEFAULT_MAX_TEMPLATE_EXECUTION_TIME = 2000;
+    private static final int MIN_DEFAULT_MAX_QUEUE_LENGTH = 2;
+    private static final int MAX_DEFAULT_MAX_QUEUE_LENGTH_MILLISECONDS = 30000;
     private static final long THREAD_KEEP_ALIVE_TIME = 4 * 1000;
+    private static final long ABORTION_LOOP_TIME_LIMIT = 5000;
+    private static final long ABORTION_LOOP_INTERRUPTION_DISTANCE = 50;
     
     private static final String MAX_OUTPUT_LENGTH_EXCEEDED_TERMINATION = "\n----------\n"
             + "Aborted template processing, as the output length has exceeded the {0} character limit set for "
@@ -60,7 +66,8 @@ public class FreeMarkerService {
     private int maxOutputLength = DEFAULT_MAX_OUTPUT_LENGTH;
     
     private int maxThreads = DEFAULT_MAX_THREADS;
-    private int maxQueueLength = DEFAULT_MAX_QUEUE_LENGTH;
+    private Integer maxQueueLength;
+    private long maxTemplateExecutionTime = DEFAULT_MAX_TEMPLATE_EXECUTION_TIME;
 
     public FreeMarkerService() {
         freeMarkerConfig = new Configuration(Configuration.getVersion());
@@ -84,17 +91,70 @@ public class FreeMarkerService {
      *             the meaning of {@link RejectedExecutionException} either.
      */
     public FreeMarkerServiceResponse calculateTemplateOutput(
-        String templateSourceCode, Object dataModel) throws RejectedExecutionException {
-        Objects.requireNonNull(templateExecutor,
-                "templateExecutor was null - maybe the Spring bean's afterPropertySet wasn't called");
-        Future<FreeMarkerServiceResponse> future = templateExecutor.submit(
-                new CalculateTemplateOutput(templateSourceCode, dataModel));
+            String templateSourceCode, Object dataModel) throws RejectedExecutionException {
+        Objects.requireNonNull(templateExecutor, "templateExecutor was null - was postConstruct ever called?");
+        
+        final CalculateTemplateOutput task = new CalculateTemplateOutput(templateSourceCode, dataModel);
+        Future<FreeMarkerServiceResponse> future = templateExecutor.submit(task);
+        
+        synchronized (task) {
+            while (!task.isTemplateExecutionStarted() && !task.isTaskEnded() && !future.isDone()) {
+                try {
+                    task.wait(50); // Timeout is needed to periodically check future.isDone()
+                } catch (InterruptedException e) {
+                    throw new FreeMarkerServiceException("Template execution task was interrupted.", e);
+                }
+            }
+        }
+        
         try {
-            return future.get();
-        } catch (InterruptedException e) {
-            throw new FreeMarkerServiceException("Template execution task was interrupted", e);
+            return future.get(maxTemplateExecutionTime, TimeUnit.MILLISECONDS);
         } catch (ExecutionException e) {
             throw new FreeMarkerServiceException("Template execution task unexpectedly failed", e.getCause());
+        } catch (InterruptedException e) {
+            throw new FreeMarkerServiceException("Template execution task was interrupted.", e);
+        } catch (TimeoutException e) {
+            // Exactly one interruption should be enough, and it should abort template processing pretty much
+            // immediately. But to be on the safe side we will interrupt in a loop, with a timeout.
+            final long abortionLoopStartTime = System.currentTimeMillis();
+            long timeLeft = ABORTION_LOOP_TIME_LIMIT;
+            boolean templateExecutionEnded = false;
+            do {
+                synchronized (task) {
+                    Thread templateExecutorThread = task.getTemplateExecutorThread();
+                    if (templateExecutorThread == null) {
+                        templateExecutionEnded = true;
+                    } else {
+                        FreeMarkerInternalsAccessor.interruptTemplateProcessing(templateExecutorThread);
+                        logger.debug("Trying to interrupt overly long template processing (" + timeLeft + " ms left).");
+                    }
+                }
+                if (!templateExecutionEnded) {
+                    try {
+                        timeLeft = ABORTION_LOOP_TIME_LIMIT - (System.currentTimeMillis() - abortionLoopStartTime);
+                        if (timeLeft > 0) {
+                            Thread.sleep(ABORTION_LOOP_INTERRUPTION_DISTANCE);
+                        }
+                    } catch (InterruptedException eInt) {
+                        logger.error("Template execution abortion loop was interrupted", eInt);
+                        timeLeft = 0;
+                    }
+                }
+            } while (!templateExecutionEnded && timeLeft > 0);
+            
+            if (templateExecutionEnded) {
+                logger.debug("Long template processing has ended.");
+                try {
+                    return future.get();
+                } catch (InterruptedException | ExecutionException e1) {
+                    throw new FreeMarkerServiceException("Failed to get result from template executor task", e);
+                }
+            } else {
+                throw new FreeMarkerServiceException(
+                        "Couldn't stop long running template processing within " + ABORTION_LOOP_TIME_LIMIT
+                        + " ms. It's possibly stuck forever. Such problems can exhaust the executor pool. "
+                        + "Template (quoted): " + StringEscapeUtils.escapeJava(templateSourceCode));
+            }
         }
     }
     
@@ -122,6 +182,14 @@ public class FreeMarkerService {
         this.maxQueueLength = maxQueueLength;
     }
 
+    public long getMaxTemplateExecutionTime() {
+        return maxTemplateExecutionTime;
+    }
+    
+    public void setMaxTemplateExecutionTime(long maxTemplateExecutionTime) {
+        this.maxTemplateExecutionTime = maxTemplateExecutionTime;
+    }
+
     /**
      * Returns the time zone used by the FreeMarker templates.
      */
@@ -136,57 +204,107 @@ public class FreeMarkerService {
 
     @PostConstruct
     public void postConstruct() {
+        int actualMaxQueueLength = maxQueueLength != null
+                ? maxQueueLength
+                : Math.max(
+                        MIN_DEFAULT_MAX_QUEUE_LENGTH,
+                        (int) (MAX_DEFAULT_MAX_QUEUE_LENGTH_MILLISECONDS / maxTemplateExecutionTime));
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
                 maxThreads, maxThreads,
                 THREAD_KEEP_ALIVE_TIME, TimeUnit.MILLISECONDS,
-                new BlockingArrayQueue<Runnable>(maxQueueLength));
+                new BlockingArrayQueue<Runnable>(actualMaxQueueLength));
         threadPoolExecutor.allowCoreThreadTimeOut(true);
         templateExecutor = threadPoolExecutor;
     }
     
     private class CalculateTemplateOutput implements Callable<FreeMarkerServiceResponse> {
         
+        private boolean templateExecutionStarted;
+        private Thread templateExecutorThread;
         private final String templateSourceCode;
         private final Object dataModel;
+        private boolean taskEnded;
 
         public CalculateTemplateOutput(String templateSourceCode, Object dataModel) {
             this.templateSourceCode = templateSourceCode;
             this.dataModel = dataModel;
         }
-
+        
         @Override
         public FreeMarkerServiceResponse call() throws Exception {
-            Template template;
             try {
-                template = new Template(null, templateSourceCode, freeMarkerConfig);
-            } catch (ParseException e) {
-                // Expected (part of normal operation)
-                return createFailureResponse(e);
-            } catch (Exception e) {
-                // Not expected
-                throw new FreeMarkerServiceException("Unexpected exception during template parsing", e);
+                Template template;
+                try {
+                    template = new Template(null, templateSourceCode, freeMarkerConfig);
+                } catch (ParseException e) {
+                    // Expected (part of normal operation)
+                    return createFailureResponse(e);
+                } catch (Exception e) {
+                    // Not expected
+                    throw new FreeMarkerServiceException("Unexpected exception during template parsing", e);
+                }
+                
+                FreeMarkerInternalsAccessor.makeTemplateInterruptable(template);
+                
+                boolean resultTruncated;
+                StringWriter writer = new StringWriter();
+                try {
+                    synchronized (this) {
+                        templateExecutorThread = Thread.currentThread(); 
+                        templateExecutionStarted = true;
+                        notifyAll();
+                    }
+                    try {
+                        template.process(dataModel, new LengthLimitedWriter(writer, maxOutputLength));
+                    } finally {
+                        synchronized (this) {
+                            templateExecutorThread = null;
+                            FreeMarkerInternalsAccessor.clearAnyPendingTemplateProcessingInterruption();
+                        }
+                    }
+                    resultTruncated = false;
+                } catch (LengthLimitExceededException e) {
+                    // Not really an error, we just cut the output here.
+                    resultTruncated = true;
+                    writer.write(new MessageFormat(MAX_OUTPUT_LENGTH_EXCEEDED_TERMINATION, Locale.US)
+                            .format(new Object[] { maxOutputLength }));
+                    // Falls through
+                } catch (TemplateException e) {
+                    // Expected (part of normal operation)
+                    return createFailureResponse(e);
+                } catch (Exception e) {
+                    if (FreeMarkerInternalsAccessor.isTemplateProcessingInterruptedException(e)) {
+                        return new FreeMarkerServiceResponse.Builder().buildForFailure(new TimeoutException(
+                                "Template processing was aborted for exceeding the " + getMaxTemplateExecutionTime()
+                                + " ms time limit set for this online service. This is usually because you have "
+                                + "a very long running #list (or other kind of loop) in your template.")); 
+                    }
+                    // Not expected
+                    throw new FreeMarkerServiceException("Unexpected exception during template evaluation", e);
+                }
+                
+                return new FreeMarkerServiceResponse.Builder().buildForSuccess(writer.toString(), resultTruncated);
+            } finally {
+                synchronized (this) {
+                    taskEnded = true;
+                    notifyAll();
+                }
             }
-            
-            boolean resultTruncated;
-            StringWriter writer = new StringWriter();
-            try {
-                template.process(dataModel, new LengthLimitedWriter(writer, maxOutputLength));
-                resultTruncated = false;
-            } catch (LengthLimitExceededException e) {
-                // Not really an error, we just cut the output here.
-                resultTruncated = true;
-                writer.write(new MessageFormat(MAX_OUTPUT_LENGTH_EXCEEDED_TERMINATION, Locale.US)
-                        .format(new Object[] { maxOutputLength }));
-                // Falls through
-            } catch (TemplateException e) {
-                // Expected (part of normal operation)
-                return createFailureResponse(e);
-            } catch (Exception e) {
-                // Not expected
-                throw new FreeMarkerServiceException("Unexpected exception during template evaluation", e);
-            }
-            
-            return new FreeMarkerServiceResponse.Builder().buildForSuccess(writer.toString(), resultTruncated);
+        }
+        
+        public synchronized boolean isTemplateExecutionStarted() {
+            return templateExecutionStarted;
+        }
+
+        public synchronized boolean isTaskEnded() {
+            return taskEnded;
+        }
+        
+        /**
+         * @return non-{@code null} after the task execution has actually started, but before it has finished.
+         */
+        public synchronized Thread getTemplateExecutorThread() {
+            return templateExecutorThread;
         }
         
     }
