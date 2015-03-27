@@ -20,4 +20,4 @@ Development Instuctions
 License
 -------
 
-FreeMarker-Online is licensed under the Apache License, Version 2.0. See LICENSE.txt for detils.
+FreeMarker-Online is licensed under the Apache License, Version 2.0. See LICENSE.txt for details.
