@@ -17,3 +17,7 @@ Development Instuctions
 * For running the software from a command line just hit "java -jar build/libs/freemarker-online-0.1.undef.jar server  src/main/resources/freemarker-online.yml"
 
 
+License
+-------
+
+FreeMarker-Online is licensed under the Apache License, Version 2.0. See LICENSE.txt for detils.
