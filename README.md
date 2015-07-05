@@ -14,7 +14,7 @@ Development Instuctions
   3. `mvn install` it
 * Run "./gradlew build" from the cloned directory (use JDK 7, not 8!)
 * If you want to run it using IDEA run "./gradlew cleanidea idea" - this will generate the IDEA project for you.
-* For running the software from a command line just hit "java -jar build/libs/freemarker-online-0.1.undef.jar server  src/main/resources/freemarker-online.yml"
+* For running the software from a command line, build `fatJar` (not `jar`) and then just hit "java -jar build/libs/freemarker-online-0.1.undef.jar server  src/main/resources/freemarker-online.yml"
 
 
 License
