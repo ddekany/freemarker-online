@@ -1,6 +1,7 @@
 package com.kenshoo.freemarker.resources;
 
 import com.kenshoo.freemarker.model.FreeMarkerPayload;
+import com.kenshoo.freemarker.model.FreeMarkerResponse;
 import com.kenshoo.freemarker.services.FreeMarkerService;
 import com.kenshoo.freemarker.services.FreeMarkerServiceResponse;
 import com.kenshoo.freemarker.util.DataModelParser;
@@ -23,10 +24,10 @@ import java.util.concurrent.RejectedExecutionException;
 /**
  * Created by pradeep on 8/28/2015.
  */
-@Path("/compile")
+@Path("/api/execute")
 @Component
 
-public class FreeMarkerOnlineComplileResource {
+public class FreeMarkerOnlineExecuteResource {
     private static final int MAX_TEMPLATE_INPUT_LENGTH = 10000;
 
     private static final int MAX_DATA_MODEL_INPUT_LENGTH = 10000;
@@ -48,7 +49,7 @@ public class FreeMarkerOnlineComplileResource {
     @Autowired
     private FreeMarkerService freeMarkerService;
     @POST
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response formResult(
             FreeMarkerPayload payload) {
@@ -59,14 +60,14 @@ public class FreeMarkerOnlineComplileResource {
         if (payload.getDataModel().length() > MAX_DATA_MODEL_INPUT_LENGTH) {
             error = new MessageFormat(MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, Locale.US)
                     .format(new Object[] { MAX_DATA_MODEL_INPUT_LENGTH });
-            return Response.serverError().entity(error).build();
+            return Response.serverError().entity(new FreeMarkerResponse(error)).build();
         }
         Map<String, Object> dataModel;
         try {
             dataModel = DataModelParser.parse(payload.getDataModel(), freeMarkerService.getFreeMarkerTimeZone());
         } catch (DataModelParsingException e) {
             error = e.getMessage();
-            return Response.serverError().entity(decorateResultText(error)).build();
+            return Response.serverError().entity(new FreeMarkerResponse(decorateResultText(error))).build();
         }
 
         if (payload.getTemplate().length() > MAX_TEMPLATE_INPUT_LENGTH) {
@@ -79,16 +80,16 @@ public class FreeMarkerOnlineComplileResource {
             freeMarkerServiceResponse = freeMarkerService.calculateTemplateOutput(payload.getTemplate(), dataModel);
         } catch (RejectedExecutionException e) {
             error = SERVICE_OVERBURDEN_ERROR_MESSAGE;
-            return Response.serverError().entity(error).build();
+            return Response.serverError().entity(new FreeMarkerResponse(error)).build();
         }
         if (freeMarkerServiceResponse.isSuccesful()){
             result = freeMarkerServiceResponse.getTemplateOutput();
-            return Response.ok(result).build();
+            return Response.ok(new FreeMarkerResponse(result)).build();
 
         } else {
             Throwable failureReason = freeMarkerServiceResponse.getFailureReason();
             error = ExceptionUtils.getMessageWithCauses(failureReason);
-            return Response.serverError().entity(error).build();
+            return Response.serverError().entity(new FreeMarkerResponse(error)).build();
         }
 
     }
