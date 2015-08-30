@@ -7,6 +7,14 @@ public class FreeMarkerPayload {
     private String template;
     private String dataModel;
 
+    public FreeMarkerPayload() {
+    }
+
+    public FreeMarkerPayload(String template, String dataModel) {
+        this.template = template;
+        this.dataModel = dataModel;
+    }
+
     public String getDataModel() {
         return dataModel;
     }
