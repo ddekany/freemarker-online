@@ -1,16 +1,11 @@
 package com.kenshoo.freemarker.resources;
 
-import com.kenshoo.freemarker.model.FreeMarkerError;
-import com.kenshoo.freemarker.model.FreeMarkerErrorReponse;
-import com.kenshoo.freemarker.model.FreeMarkerPayload;
-import com.kenshoo.freemarker.model.FreeMarkerResponse;
+import com.kenshoo.freemarker.model.*;
 import com.kenshoo.freemarker.services.FreeMarkerService;
 import com.kenshoo.freemarker.services.FreeMarkerServiceResponse;
 import com.kenshoo.freemarker.util.DataModelParser;
 import com.kenshoo.freemarker.util.DataModelParsingException;
 import com.kenshoo.freemarker.util.ExceptionUtils;
-import com.kenshoo.freemarker.view.FreeMarkerOnlineView;
-import com.kenshoo.freemarker.view.FreeMarkerOnlineViewResultType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -52,15 +47,15 @@ public class FreeMarkerOnlineExecuteResource {
     private String error = null;
     @Autowired
     private FreeMarkerService freeMarkerService;
-    private FreeMarkerResponse freeMarkerResponse;
+    private ExecuteResponse executeResponse;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response formResult(
-            FreeMarkerPayload payload) {
+            ExecuteRequest payload) {
         Map<String, String> problems = new HashMap<String, String>();
-        freeMarkerResponse = new FreeMarkerResponse();
+        executeResponse = new ExecuteResponse();
         if (StringUtils.isBlank(payload.getTemplate()) && StringUtils.isBlank(payload.getDataModel())) {
             return Response.status(400).entity("Empty Template & data").build();
         }
@@ -68,51 +63,50 @@ public class FreeMarkerOnlineExecuteResource {
         if (payload.getDataModel().length() > MAX_DATA_MODEL_INPUT_LENGTH) {
             error = new MessageFormat(MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, Locale.US)
                     .format(new Object[] { MAX_DATA_MODEL_INPUT_LENGTH });
-            problems.put("DataModel", error);
-            freeMarkerResponse.setProblems(problems);
-            return buildFreeMarkerResponse(true);
+            problems.put(ExecuteResourceErrorFields.DATA_MODEL.toString(), error);
+            executeResponse.setProblems(problems);
+            return buildFreeMarkerResponse();
         }
         Map<String, Object> dataModel;
         try {
             dataModel = DataModelParser.parse(payload.getDataModel(), freeMarkerService.getFreeMarkerTimeZone());
         } catch (DataModelParsingException e) {
             error = e.getMessage();
-            problems.put("DataModel", decorateResultText(error));
-            freeMarkerResponse.setProblems(problems);
-            return buildFreeMarkerResponse(true);
+            problems.put(ExecuteResourceErrorFields.DATA_MODEL.toString(), decorateResultText(error));
+            executeResponse.setProblems(problems);
+            return buildFreeMarkerResponse();
         }
 
         if (payload.getTemplate().length() > MAX_TEMPLATE_INPUT_LENGTH) {
             error = new MessageFormat(MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, Locale.US)
                             .format(new Object[] { MAX_TEMPLATE_INPUT_LENGTH });
-            problems.put("Template", error);
-            freeMarkerResponse.setProblems(problems);
-            return buildFreeMarkerResponse(true);
+            problems.put(ExecuteResourceErrorFields.TEMPLATE.toString(), error);
+            executeResponse.setProblems(problems);
+            return buildFreeMarkerResponse();
         }
         FreeMarkerServiceResponse freeMarkerServiceResponse;
         try {
             freeMarkerServiceResponse = freeMarkerService.calculateTemplateOutput(payload.getTemplate(), dataModel);
         } catch (RejectedExecutionException e) {
             error = SERVICE_OVERBURDEN_ERROR_MESSAGE;
-            return Response.serverError().entity(new FreeMarkerErrorReponse(FreeMarkerError.FREEMARKER_SERVICE_TIMEOUT, error)).build();
+            return Response.serverError().entity(new ErrorResponse(FreeMarkerError.FREEMARKER_SERVICE_TIMEOUT, error)).build();
         }
         if (freeMarkerServiceResponse.isSuccesful()){
             result = freeMarkerServiceResponse.getTemplateOutput();
-            freeMarkerResponse.setResult(result);
-            freeMarkerResponse.setTruncatedResult(freeMarkerServiceResponse.isTemplateOutputTruncated());
-            return buildFreeMarkerResponse(false);
+            executeResponse.setResult(result);
+            executeResponse.setTruncatedResult(freeMarkerServiceResponse.isTemplateOutputTruncated());
+            return buildFreeMarkerResponse();
         } else {
             Throwable failureReason = freeMarkerServiceResponse.getFailureReason();
             error = ExceptionUtils.getMessageWithCauses(failureReason);
-            problems.put("DataModel", error);
-            freeMarkerResponse.setProblems(problems);
-            return buildFreeMarkerResponse(true);
+            problems.put(ExecuteResourceErrorFields.DATA_MODEL.toString(), error);
+            executeResponse.setProblems(problems);
+            return buildFreeMarkerResponse();
         }
 
     }
-    private Response buildFreeMarkerResponse(boolean isError){
-        Response.ResponseBuilder response = isError ? Response.serverError() : Response.ok();
-        return response.entity(freeMarkerResponse).build();
+    private Response buildFreeMarkerResponse(){
+        return Response.ok().entity(executeResponse).build();
     }
     private String decorateResultText(String resultText) {
         return DATA_MODEL_ERROR_MESSAGE_HEADING + "\n\n" + resultText + "\n\n" + DATA_MODEL_ERROR_MESSAGE_FOOTER;

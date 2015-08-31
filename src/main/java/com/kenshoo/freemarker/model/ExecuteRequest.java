@@ -3,14 +3,14 @@ package com.kenshoo.freemarker.model;
 /**
  * Created by Pmuruge on 8/28/2015.
  */
-public class FreeMarkerPayload {
+public class ExecuteRequest {
     private String template;
     private String dataModel;
 
-    public FreeMarkerPayload() {
+    public ExecuteRequest() {
     }
 
-    public FreeMarkerPayload(String template, String dataModel) {
+    public ExecuteRequest(String template, String dataModel) {
         this.template = template;
         this.dataModel = dataModel;
     }

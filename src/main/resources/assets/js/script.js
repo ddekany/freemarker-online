@@ -29,11 +29,18 @@ $( document).ready(function(){
                 }
             })
                 .done(function( data ) {
-                    $("#result").removeClass("error");
-                    $("#result").html(data.result);
+                    if(data.problems) {
+                        var error = data.problems.dataModel ? data.problems.dataModel : data.problems.template;
+                        $("#result").addClass("error");
+                        $("#result").html(error);
+                    }
+                    else {
+                        $("#result").removeClass("error");
+                        $("#result").html(data.result);
+                    }
                 })
                 .fail(function(data){
-                    $("#result").html(data.responseJSON.result);
+                    $("#result").html(data.responseJSON.errorCode + ": " + data.responseJSON.errorDescription);
                     $("#result").addClass("error");
                 }).always(function(data){
                     $(".resultContainer").show();
