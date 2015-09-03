@@ -124,5 +124,4 @@ public class FreeMarkerOnlineResource {
                     templateInput, dataModelInput);
         }
     }
-    
 }

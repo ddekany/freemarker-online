@@ -59,6 +59,9 @@ dependencies {
     compile libraries.commonLangs
 
     testCompile libraries.selenium_java
+    testCompile libraries.jersey_grrizle
+    testCompile libraries.jersey_client
+    testCompile libraries.springJersey
 }
 
 compileJava {
