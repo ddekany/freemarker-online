@@ -15,7 +15,6 @@ $( document).ready(function(){
     var execute = function() {
         if(validForm()) {
             $("#error").hide();
-            console.log("I am clicked");
             var payload = {
                 "template": $("#template").val(),
                 "dataModel": $("#dataModel").val()
@@ -50,7 +49,7 @@ $( document).ready(function(){
     };
     var validForm = function() {
         var error = true;
-        if($("#template").val().trim() === "" || $("#template").val().trim() === "") {
+        if($("#template").val().trim() === "" ) {
             $("#error").show();
             error = false;
         }
@@ -58,16 +57,12 @@ $( document).ready(function(){
     };
 
     $( document ).ajaxStart(function() {
-        console.log("Starting Ajax");
-        $("#dataModel").attr("readonly","true");
-        $("#template").attr("readonly","true");
+        $.blockUI({ message: null });
         $("#eval-btn").attr("disabled","true");
     });
 
     $( document ).ajaxStop(function() {
-        console.log("Stopping Ajax");
-        $("#dataModel").removeAttr("readonly");
-        $("#template").removeAttr("readonly");
+        $.unblockUI();
         $("#eval-btn").removeAttr("disabled");
     });
 

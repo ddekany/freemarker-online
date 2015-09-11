@@ -7,10 +7,10 @@ import java.util.Map;
  */
 public class ExecuteResponse {
     private String result;
-    private Map<String, String> problems;
+    private Map<ExecuteResourceErrorFields, String> problems;
     private boolean truncatedResult;
 
-    public ExecuteResponse(String result, Map<String, String> problems, boolean truncatedResult) {
+    public ExecuteResponse(String result, Map<ExecuteResourceErrorFields, String> problems, boolean truncatedResult) {
         this.result = result;
         this.problems = problems;
         this.truncatedResult = truncatedResult;
@@ -20,11 +20,11 @@ public class ExecuteResponse {
 
     }
 
-    public Map<String, String> getProblems() {
+    public Map<ExecuteResourceErrorFields, String> getProblems() {
         return problems;
     }
 
-    public void setProblems(Map<String, String> problems) {
+    public void setProblems(Map<ExecuteResourceErrorFields, String> problems) {
         this.problems = problems;
     }
 

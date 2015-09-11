@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
     
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="js/jquery.blockUI.js"></script>
     <script src="js/autosize.min.js"></script>
     <script src="js/script.js"></script>
     <script>
@@ -69,12 +70,11 @@ someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
                 <textarea id="dataModel" name="dataModel" class="pure-input-1 source-code"
                         placeholder='Enter one or more assignments (e.g., user = John Doe), starting each in its own line.'
                 >${dataModel}</textarea>
-                <span id="error" class="errorMessage">Template and Data Model cannot be empty</span>
+                <span id="error" class="errorMessage">Template cannot be empty</span>
                 <div class="formBottomButtonsContainer">
 	                <input id="eval-btn" type="button" value="Evaluate" class="pure-button pure-button-primary"/>
 	                &nbsp; <span class="faint">Ctrl+Enter in input fields will submit this form too</span>
                 </div>
-
                 <div style="display:none" class="resultContainer">
                     <label for="result">Result</label>
                     <textarea id="result" class="pure-input-1 source-code" readonly></textarea>

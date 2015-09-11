@@ -51,7 +51,7 @@ public class FreeMarkerOnlineExecuteResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response formResult(
             ExecuteRequest payload) {
-        Map<String, String> problems = new HashMap<String, String>();
+        Map<ExecuteResourceErrorFields, String> problems = new HashMap<ExecuteResourceErrorFields, String>();
         ExecuteResponse executeResponse = new ExecuteResponse();
         if (StringUtils.isBlank(payload.getTemplate()) && StringUtils.isBlank(payload.getDataModel())) {
             return Response.status(400).entity("Empty Template & data").build();
@@ -60,7 +60,7 @@ public class FreeMarkerOnlineExecuteResource {
         if (payload.getDataModel().length() > MAX_DATA_MODEL_INPUT_LENGTH) {
             String error = new MessageFormat(MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, Locale.US)
                     .format(new Object[] { MAX_DATA_MODEL_INPUT_LENGTH });
-            problems.put(ExecuteResourceErrorFields.DATA_MODEL.toString(), error);
+            problems.put(ExecuteResourceErrorFields.DATA_MODEL, error);
             executeResponse.setProblems(problems);
             return buildFreeMarkerResponse(executeResponse);
         }
@@ -69,7 +69,7 @@ public class FreeMarkerOnlineExecuteResource {
             dataModel = DataModelParser.parse(payload.getDataModel(), freeMarkerService.getFreeMarkerTimeZone());
         } catch (DataModelParsingException e) {
             String error = e.getMessage();
-            problems.put(ExecuteResourceErrorFields.DATA_MODEL.toString(), decorateResultText(error));
+            problems.put(ExecuteResourceErrorFields.DATA_MODEL, decorateResultText(error));
             executeResponse.setProblems(problems);
             return buildFreeMarkerResponse(executeResponse);
         }
@@ -77,7 +77,7 @@ public class FreeMarkerOnlineExecuteResource {
         if (payload.getTemplate().length() > MAX_TEMPLATE_INPUT_LENGTH) {
             String error = new MessageFormat(MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, Locale.US)
                             .format(new Object[] { MAX_TEMPLATE_INPUT_LENGTH });
-            problems.put(ExecuteResourceErrorFields.TEMPLATE.toString(), error);
+            problems.put(ExecuteResourceErrorFields.TEMPLATE, error);
             executeResponse.setProblems(problems);
             return buildFreeMarkerResponse(executeResponse);
         }
@@ -96,7 +96,7 @@ public class FreeMarkerOnlineExecuteResource {
         } else {
             Throwable failureReason = freeMarkerServiceResponse.getFailureReason();
             String error = ExceptionUtils.getMessageWithCauses(failureReason);
-            problems.put(ExecuteResourceErrorFields.DATA_MODEL.toString(), error);
+            problems.put(ExecuteResourceErrorFields.TEMPLATE, error);
             executeResponse.setProblems(problems);
             return buildFreeMarkerResponse(executeResponse);
         }
