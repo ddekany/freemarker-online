@@ -1,6 +1,7 @@
 package com.kenshoo.freemarker.resources;
 
 import com.kenshoo.freemarker.model.ExecuteRequest;
+import com.kenshoo.freemarker.model.ExecuteResourceErrorFields;
 import com.kenshoo.freemarker.model.ExecuteResponse;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
@@ -28,7 +29,6 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
     protected AppDescriptor configure() {
         return new WebAppDescriptor.Builder("com.kenshoo.freemarker.resources")
                         .contextPath("/")
-
                         .contextListenerClass(ContextLoaderListener.class)
                         .contextParam("contextConfigLocation", "classpath:spring/bootstrap-context.xml")
                         .servletClass(SpringServlet.class)
@@ -52,7 +52,7 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(response.getProblems().containsKey("dataModel"));
+        assertTrue(response.getProblems().containsKey(ExecuteResourceErrorFields.DATA_MODEL));
     }
 
     @Test
@@ -63,12 +63,12 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(response.getProblems().containsKey("dataModel"));
-        String error = response.getProblems().get("dataModel");
+        assertTrue(response.getProblems().containsKey(ExecuteResourceErrorFields.DATA_MODEL));
+        String error = response.getProblems().get(ExecuteResourceErrorFields.DATA_MODEL);
         assertThat(error, containsString("data model"));
         assertThat(error, containsString("limit"));
     }
-
+    @Test
     public void testLongTemplate() throws Exception {
         String longTemplate = create30KString();
         ExecuteRequest payload = new ExecuteRequest(longTemplate, DATA_MODEL);
@@ -76,8 +76,8 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(response.getProblems().containsKey("template"));
-        String error = response.getProblems().get("template");
+        assertTrue(response.getProblems().containsKey(ExecuteResourceErrorFields.TEMPLATE));
+        String error = response.getProblems().get(ExecuteResourceErrorFields.TEMPLATE);
         assertThat(error, containsString("template"));
         assertThat(error, containsString("limit"));
     }

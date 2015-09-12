@@ -4,10 +4,10 @@ package com.kenshoo.freemarker.model;
  * Created by Pmuruge on 8/30/2015.
  */
 public class ErrorResponse {
-    private FreeMarkerError errorCode;
+    private ErrorCode errorCode;
     private String errorDescription;
 
-    public ErrorResponse(FreeMarkerError errorCode, String errorDescription) {
+    public ErrorResponse(ErrorCode errorCode, String errorDescription) {
         this.errorCode = errorCode;
         this.errorDescription = errorDescription;
     }

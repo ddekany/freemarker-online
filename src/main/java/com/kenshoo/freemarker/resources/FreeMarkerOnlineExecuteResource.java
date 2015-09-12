@@ -86,7 +86,7 @@ public class FreeMarkerOnlineExecuteResource {
             freeMarkerServiceResponse = freeMarkerService.calculateTemplateOutput(payload.getTemplate(), dataModel);
         } catch (RejectedExecutionException e) {
             String error = SERVICE_OVERBURDEN_ERROR_MESSAGE;
-            return Response.serverError().entity(new ErrorResponse(FreeMarkerError.FREEMARKER_SERVICE_TIMEOUT, error)).build();
+            return Response.serverError().entity(new ErrorResponse(ErrorCode.FREEMARKER_SERVICE_TIMEOUT, error)).build();
         }
         if (freeMarkerServiceResponse.isSuccesful()){
             String result = freeMarkerServiceResponse.getTemplateOutput();
