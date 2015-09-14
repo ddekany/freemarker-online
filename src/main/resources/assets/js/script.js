@@ -29,6 +29,7 @@ $( document).ready(function(){
 });
 
     var execute = function() {
+        $.blockUI({ message: null });
         if(validForm()) {
             $("#error").hide();
             var payload = {
@@ -62,6 +63,9 @@ $( document).ready(function(){
                     autosize.update($("#result"));
                 });
         }
+        else {
+            $.unblockUI();
+        }
     };
     var validForm = function() {
         var error = true;
@@ -73,7 +77,6 @@ $( document).ready(function(){
     };
 
     $( document ).ajaxStart(function() {
-        $.blockUI({ message: null });
         $("#eval-btn").attr("disabled","true");
     });
 
