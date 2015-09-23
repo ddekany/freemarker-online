@@ -10,9 +10,6 @@
     <script src="js/jquery.blockUI.js"></script>
     <script src="js/autosize.min.js"></script>
     <script src="js/script.js"></script>
-    <#if execute>
-        <script src="js/execute.js"></script>
-    </#if>
     <script>
         $(function() {
             // Auto-focus on first form input:
@@ -34,6 +31,9 @@
                  e.preventDefault();
             	 return false;
             })
+			<#if execute>
+				execute();
+			</#if>
         });
     </script>
     

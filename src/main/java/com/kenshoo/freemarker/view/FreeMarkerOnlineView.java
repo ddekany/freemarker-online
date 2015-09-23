@@ -35,6 +35,13 @@ public class FreeMarkerOnlineView extends View {
     public FreeMarkerOnlineView() {
         this( "", "", false);
     }
+
+    /**
+     *
+     * @param template
+     * @param dataModel
+     * @param execute set to true if the execution should be triggered on page load.
+     */
     public  FreeMarkerOnlineView(String template, String dataModel, boolean execute) {
         super("/view/freemarker-online.ftl", Charset.forName("utf-8"));
         this.template = template;
