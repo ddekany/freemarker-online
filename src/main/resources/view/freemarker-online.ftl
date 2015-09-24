@@ -31,9 +31,9 @@
                  e.preventDefault();
             	 return false;
             })
-			<#if execute>
-				execute();
-			</#if>
+            <#if execute>
+                execute();
+            </#if>
         });
     </script>
     
