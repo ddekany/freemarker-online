@@ -15,21 +15,9 @@
  */
 package com.kenshoo.freemarker.resources;
 
-import java.text.MessageFormat;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.RejectedExecutionException;
-
-import com.kenshoo.freemarker.services.FreeMarkerService;
-import com.kenshoo.freemarker.services.FreeMarkerServiceResponse;
-import com.kenshoo.freemarker.util.DataModelParser;
-import com.kenshoo.freemarker.util.DataModelParsingException;
-import com.kenshoo.freemarker.util.ExceptionUtils;
 import com.kenshoo.freemarker.view.FreeMarkerOnlineView;
-import com.kenshoo.freemarker.view.FreeMarkerOnlineViewResultType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.Consumes;
@@ -50,22 +38,6 @@ import javax.ws.rs.core.MediaType;
 @Component
 public class FreeMarkerOnlineResource {
 
-    private static final int MAX_TEMPLATE_INPUT_LENGTH = 10000;
-    
-    private static final int MAX_DATA_MODEL_INPUT_LENGTH = 10000;
-
-    private static final String MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE
-            = "The template length has exceeded the {0} character limit set for this service.";
-    
-    private static final String MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE
-            = "The data model length has exceeded the {0} character limit set for this service.";
-
-    private static final String SERVICE_OVERBURDEN_ERROR_MESSAGE
-            = "Sorry, the service is overburden and couldn't handle your request now. Try again later.";
-    
-    @Autowired
-    private FreeMarkerService freeMarkerService;
-
     @GET
     @Produces(MediaType.TEXT_HTML)
     public FreeMarkerOnlineView blankForm() {
@@ -81,48 +53,7 @@ public class FreeMarkerOnlineResource {
         if (StringUtils.isBlank(templateInput) && StringUtils.isBlank(dataModelInput)) {
             return blankForm();
         }
-        
-        if (dataModelInput.length() > MAX_DATA_MODEL_INPUT_LENGTH) {
-            return new FreeMarkerOnlineView(
-                    FreeMarkerOnlineViewResultType.DATA_MODEL_ERROR,
-                    new MessageFormat(MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, Locale.US)
-                            .format(new Object[] { MAX_DATA_MODEL_INPUT_LENGTH }),
-                    templateInput, dataModelInput);
-        }
-        Map<String, Object> dataModel;
-        try {
-            dataModel = DataModelParser.parse(dataModelInput, freeMarkerService.getFreeMarkerTimeZone());
-        } catch (DataModelParsingException e) {
-            return new FreeMarkerOnlineView(
-                    FreeMarkerOnlineViewResultType.DATA_MODEL_ERROR, e.getMessage(),
-                    templateInput, dataModelInput);
-        }
-        
-        if (templateInput.length() > MAX_TEMPLATE_INPUT_LENGTH) {
-            return new FreeMarkerOnlineView(
-                    FreeMarkerOnlineViewResultType.TEMPLATE_ERROR,
-                    new MessageFormat(MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, Locale.US)
-                            .format(new Object[] { MAX_TEMPLATE_INPUT_LENGTH }),
-                    templateInput, dataModelInput);
-        }
-        FreeMarkerServiceResponse freeMarkerServiceResponse;
-        try {
-            freeMarkerServiceResponse = freeMarkerService.calculateTemplateOutput(templateInput, dataModel);
-        } catch (RejectedExecutionException e) {
-            return new FreeMarkerOnlineView(
-                    FreeMarkerOnlineViewResultType.TEMPLATE_ERROR, SERVICE_OVERBURDEN_ERROR_MESSAGE,
-                    templateInput, dataModelInput);
-        }
-        if (freeMarkerServiceResponse.isSuccesful()){
-            return new FreeMarkerOnlineView(
-                    FreeMarkerOnlineViewResultType.TEMPLATE_OUTPUT, freeMarkerServiceResponse.getTemplateOutput(),
-                    templateInput, dataModelInput);
-        } else {
-            Throwable failureReason = freeMarkerServiceResponse.getFailureReason();
-            return new FreeMarkerOnlineView(
-                    FreeMarkerOnlineViewResultType.TEMPLATE_ERROR, ExceptionUtils.getMessageWithCauses(failureReason),
-                    templateInput, dataModelInput);
-        }
+        boolean execute = true;
+        return new FreeMarkerOnlineView(templateInput, dataModelInput, execute);
     }
-    
 }

@@ -17,6 +17,7 @@ project.libraries = [
         springExpression: "org.springframework:spring-expression:$spring_version",
         springTransaction: "org.springframework:spring-tx:$spring_version",
         springBeans: "org.springframework:spring-beans:$spring_version",
+        springJersey: "com.sun.jersey.contribs:jersey-spring:1.7",
 
         // Security
         // Spring and Spring Security support for dropwizard
@@ -34,6 +35,8 @@ project.libraries = [
         mockito: 'org.mockito:mockito-core:1.9.0',
         hamcrest: 'org.hamcrest:hamcrest-library:1.3',
         selenium_java: 'org.seleniumhq.selenium:selenium-java:2.41.0',
+        jersey_client: 'com.sun.jersey:jersey-client:1.17.1',
+        jersey_grrizle: 'com.sun.jersey.jersey-test-framework:jersey-test-framework-grizzly:1.17',
 
         // Others
         freemarker: 'org.freemarker:freemarker:2.3.23',

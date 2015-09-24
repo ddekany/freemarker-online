@@ -7,21 +7,20 @@
     <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
     
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-    <script src="js/jquery.autosize.min.js"></script>
+    <script src="js/jquery.blockUI.js"></script>
+    <script src="js/autosize.min.js"></script>
+    <script src="js/script.js"></script>
     <script>
         $(function() {
             // Auto-focus on first form input:
             $('#templateAndModelForm *:input[type!=hidden]:first').focus();
             
             // Submit form when Ctrl+Enter is hit in a textarea:            
-            $('#templateAndModelForm textarea').keydown(function (e) {
-                if ((e.keyCode == 10 || e.keyCode == 13) && e.ctrlKey) {
-                    $('#templateAndModelForm').submit();
-                }
-            });
+
         
             // Dynamically adapt text areas heights to their content:
-            $('#templateAndModelForm textarea').autosize();
+            //$('#templateAndModelForm textarea').autosize();
+            autosize($('textarea'));
         
             // Show/hide data model examples:
             $("#showHideDataModelExamples").click(function(e) {
@@ -32,6 +31,9 @@
                  e.preventDefault();
             	 return false;
             })
+            <#if execute>
+                execute();
+            </#if>
         });
     </script>
     
@@ -47,7 +49,7 @@
         <div class="content">
             <form id="templateAndModelForm" method="post" class="pure-form pure-form-stacked">
                 <label for="template">Template <span class="faint">(FreeMarker ${freeMarkerVersion})</span></label>
-                <textarea name="template" class="pure-input-1 source-code"
+                <textarea id="template" name="template" class="pure-input-1 source-code"
                         placeholder="Enter template, like: Hello ${r'${user}'}!"
                 >${template}</textarea>
     
@@ -68,21 +70,19 @@ someDatetime = 2014-02-28T18:50Z
 someList = ["JSON", "syntax", 1, 2, 3 ]
 someMap = { "JSON syntax": true, "nestedList": [1, 2, 3] }
 someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
-                <textarea name="dataModel" class="pure-input-1 source-code"
+                <textarea id="dataModel" name="dataModel" class="pure-input-1 source-code"
                         placeholder='Enter one or more assignments (e.g., user = John Doe), starting each in its own line.'
                 >${dataModel}</textarea>
-    
+                <span id="error" class="errorMessage">Template cannot be empty</span>
                 <div class="formBottomButtonsContainer">
-	                <input id="eval-btn" type="submit" value="Evaluate" class="pure-button pure-button-primary"/>
+	                <input id="eval-btn" type="button" value="Evaluate" class="pure-button pure-button-primary"/>
 	                &nbsp; <span class="faint">Ctrl+Enter in input fields will submit this form too</span>
                 </div>
-                
-                <#if hasResult>
-                    <div class="resultContainer">
-                        <label for="result">Result</label>
-                        <textarea id="result" class="pure-input-1 source-code <#if errorResult> error</#if>" readonly>${result}</textarea>
-                    </div>
-                </#if>
+                <div style="display:none" class="resultContainer">
+                    <label for="result">Result</label>
+                    <textarea id="result" class="pure-input-1 source-code" readonly></textarea>
+                </div>
+
             </form>
         </div><!-- content -->
         
