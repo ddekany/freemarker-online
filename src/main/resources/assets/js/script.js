@@ -48,15 +48,15 @@ $( document).ready(function(){
                     if(data.problems) {
                         var error = data.problems.dataModel ? data.problems.dataModel : data.problems.template;
                         $("#result").addClass("error");
-                        $("#result").html(error);
+                        $("#result").val(error);
                     }
                     else {
                         $("#result").removeClass("error");
-                        $("#result").html(data.result);
+                        $("#result").val(data.result);
                     }
                 })
                 .fail(function(data){
-                    $("#result").html(data.responseJSON.errorCode + ": " + data.responseJSON.errorDescription);
+                    $("#result").val(data.responseJSON.errorCode + ": " + data.responseJSON.errorDescription);
                     $("#result").addClass("error");
                 }).always(function(data){
                     $(".resultContainer").show();
