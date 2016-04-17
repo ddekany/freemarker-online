@@ -17,8 +17,8 @@
 /**
  * Created by Pmuruge on 8/28/2015.
  */
-$( document).ready(function(){
-    $("#eval-btn").click(function(){
+$( document).ready(function() {
+    $("#eval-btn").click(function() {
         execute();
     });
     $('#templateAndModelForm textarea, #templateAndModelForm select').keydown(function (e) {
@@ -79,12 +79,11 @@ var checkFormSendable = function() {
     return true;
 };
 
-$(document ).ajaxStart(function() {
+$(document).ajaxStart(function() {
     $("#eval-btn").attr("disabled","true");
 });
 
-$(document ).ajaxStop(function() {
+$(document).ajaxStop(function() {
     $.unblockUI();
     $("#eval-btn").removeAttr("disabled");
 });
-
