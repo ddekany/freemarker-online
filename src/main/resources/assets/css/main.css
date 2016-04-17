@@ -69,10 +69,20 @@ textarea.source-code {
 
 #dataModelExamples {
 	background: #eee;
-	font-family: monospace;
-	font-size: 1em;
 	padding: 4px;
 	margin: 0;
+}
+
+#dataModelExamples .description {
+	font-style: italic;
+	margin-bottom: 1em;
+}
+
+#dataModelExamples pre {
+  font-family: monospace;
+  font-size: 1em;
+  padding: 0;
+  margin: 0;
 }
 
 #templateAndModelForm input,

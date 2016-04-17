@@ -61,7 +61,12 @@
                     --><span id="hideDataModelExamplesLabel" class="hiddenByDefault">hide</span>
                     examples</a>)
                 </label>
-                <pre id="dataModelExamples" class="hiddenByDefault">someString = Some value
+                <div id="dataModelExamples" class="hiddenByDefault">
+                  <div class="description">
+                      Note: This syntax is specific to this online service; normally, you just have Java objects as
+                      data-model.
+                  </div>
+                  <pre>someString = Some value
 otherString = "JSON\nsyntax"
 someNumber = 3.14
 someBoolean = true
@@ -70,7 +75,7 @@ someTime = 20:50:30.5+02:00
 someDatetime = 2014-02-28T18:50Z
 someList = ["JSON", "syntax", 1, 2, 3 ]
 someMap = { "JSON syntax": true, "nestedList": [1, 2, 3] }
-someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
+someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre></div>
                 <textarea id="dataModel" name="dataModel" class="pure-input-1 source-code"
                         placeholder='Enter one or more assignments (e.g., user = John Doe), starting each in its own line.'
                 >${dataModel}</textarea>
