@@ -48,6 +48,12 @@
         </div>
 
         <div class="content">
+            <!--[if lte IE 8]>
+            <div style="background-color: #C00; color: #fff; padding: 12px 24px;">
+              You seem to use Internet Explorer 8 or older. This page might won't work properly with that.
+            </div>
+            <![endif]-->
+          
             <form id="templateAndModelForm" method="post" class="pure-form pure-form-stacked">
                 <label for="template">Template <span class="faint">(Apache FreeMarker ${freeMarkerVersion})</span></label>
                 <textarea id="template" name="template" class="pure-input-1 source-code"
