@@ -28,63 +28,63 @@ $( document).ready(function(){
     });
 });
 
-    var execute = function() {
-        $.blockUI({ message: null });
-        if (checkFormSendable()) {
-            $("#error").hide();
-            var payload = {
-                "template": $("#template").val(),
-                "dataModel": $("#dataModel").val(),
-                "outputFormat": $("#outputFormat").val(),
-                "locale": $("#locale").val(),
-                "timeZone": $("#timeZone").val()
+var execute = function() {
+    $.blockUI({ message: null });
+    if (checkFormSendable()) {
+        $("#error").hide();
+        var payload = {
+            "template": $("#template").val(),
+            "dataModel": $("#dataModel").val(),
+            "outputFormat": $("#outputFormat").val(),
+            "locale": $("#locale").val(),
+            "timeZone": $("#timeZone").val()
+        }
+        $.ajax({
+            method: "POST",
+            url: "/api/execute",
+            data: JSON.stringify(payload),
+            headers: {
+                "Content-Type":"application/json"
             }
-            $.ajax({
-                method: "POST",
-                url: "/api/execute",
-                data: JSON.stringify(payload),
-                headers: {
-                    "Content-Type":"application/json"
-                }
-            })
-                .done(function( data ) {
-                    if (data.problems && data.problems.length != 0) {
-                        $("#result").addClass("error");
-                        // Currently we just show the first error:
-                        $("#result").val(data.problems[0].message);
-                    } else {
-                        $("#result").removeClass("error");
-                        $("#result").val(data.result);
-                    }
-                })
-                .fail(function(data){
-                    $("#result").val(data.responseJSON.errorCode + ": " + data.responseJSON.errorDescription);
-                    $("#result").addClass("error");
-                }).always(function(data){
-                    $(".resultContainer").show();
-                    autosize.update($("#result"));
-                });
-        }
-        else {
-            $.unblockUI();
-        }
-    };
-    var checkFormSendable = function() {
-        if($.trim($("#template").val()) === "" ) {
+        })
+        .done(function(data) {
+            if (data.problems && data.problems.length != 0) {
+                $("#result").addClass("error");
+                // Currently we just show the first error:
+                $("#result").val(data.problems[0].message);
+            } else {
+                $("#result").removeClass("error");
+                $("#result").val(data.result);
+            }
+        })
+        .fail(function(data) {
+            $("#result").val(data.responseJSON.errorCode + ": " + data.responseJSON.errorDescription);
             $("#result").addClass("error");
-            $("#result").val("Template was empty; nothing to do.");
+        }).always(function(data) {
             $(".resultContainer").show();
-            return false;
-        }
-        return true;
-    };
-
-    $( document ).ajaxStart(function() {
-        $("#eval-btn").attr("disabled","true");
-    });
-
-    $( document ).ajaxStop(function() {
+            autosize.update($("#result"));
+        });
+    } else {
         $.unblockUI();
-        $("#eval-btn").removeAttr("disabled");
-    });
+    }
+};
+
+var checkFormSendable = function() {
+    if($.trim($("#template").val()) === "" ) {
+        $("#result").addClass("error");
+        $("#result").val("Template was empty; nothing to do.");
+        $(".resultContainer").show();
+        return false;
+    }
+    return true;
+};
+
+$(document ).ajaxStart(function() {
+    $("#eval-btn").attr("disabled","true");
+});
+
+$(document ).ajaxStop(function() {
+    $.unblockUI();
+    $("#eval-btn").removeAttr("disabled");
+});
 
