@@ -17,7 +17,7 @@
 /**
  * Created by Pmuruge on 8/28/2015.
  */
-$( document).ready(function() {
+$(document).ready(function() {
     $("#eval-btn").click(function() {
         execute();
     });
@@ -30,62 +30,68 @@ $( document).ready(function() {
     $.blockUI.defaults.fadeOut = 0;
 });
 
-var execute = function() {
-    $.blockUI({ message: null });
-    if (checkFormSendable()) {
-        $("#error").hide();
-        var payload = {
-            "template": $("#template").val(),
-            "dataModel": $("#dataModel").val(),
-            "outputFormat": $("#outputFormat").val(),
-            "locale": $("#locale").val(),
-            "timeZone": $("#timeZone").val()
-        }
-        $.ajax({
-            method: "POST",
-            url: "/api/execute",
-            data: JSON.stringify(payload),
-            headers: {
-                "Content-Type":"application/json"
-            }
-        })
-        .done(function(data) {
-            if (data.problems && data.problems.length != 0) {
-                $("#result").addClass("error");
-                // Currently we just show the first error:
-                $("#result").val(data.problems[0].message);
-            } else {
-                $("#result").removeClass("error");
-                $("#result").val(data.result);
-            }
-        })
-        .fail(function(data) {
-            $("#result").val(data.responseJSON.errorCode + ": " + data.responseJSON.errorDescription);
-            $("#result").addClass("error");
-        }).always(function(data) {
-            $(".resultContainer").show();
-            autosize.update($("#result"));
-        });
-    } else {
-        $.unblockUI();
-    }
-};
+var hasPendingExecuteAjaxCall = false;
 
-var checkFormSendable = function() {
+function execute() {
+    if (hasPendingExecuteAjaxCall || !checkFormSendable()) {
+        return;
+    }
+    
+    var request = {
+        "template": $("#template").val(),
+        "dataModel": $("#dataModel").val(),
+        "outputFormat": $("#outputFormat").val(),
+        "locale": $("#locale").val(),
+        "timeZone": $("#timeZone").val()
+    }
+
+    $.ajax({
+        method: "POST",
+        url: "/api/execute",
+        data: JSON.stringify(request),
+        headers: { "Content-Type":"application/json" },
+        beforeSend: function (jqXHR, options) {
+            hasPendingExecuteAjaxCall = true;
+            $.blockUI({ message: null });
+            $("#error").hide();
+            return true;
+        }    
+    })
+    .done(function (data) {
+        if (data.problems && data.problems.length != 0) {
+            showResult(data.problems[0].message, true);              
+        } else {
+            showResult(data.result, false);              
+        }
+    })
+    .fail(function (data) {
+        if (data.responseJSON) {
+            showResult(data.responseJSON.errorCode + ": " + data.responseJSON.errorDescription, true);              
+        } else {
+            showResult("The service was unavailable or had returned an invalid response.", true);              
+        }
+    })
+    .always(function (data) {
+        hasPendingExecuteAjaxCall = false;
+        $.unblockUI();
+    });
+}
+
+function checkFormSendable() {
     if($.trim($("#template").val()) === "" ) {
-        $("#result").addClass("error");
-        $("#result").val("Template was empty; nothing to do.");
-        $(".resultContainer").show();
+        showResult("Template was empty; nothing to do.", true);
         return false;
     }
     return true;
-};
+}
 
-$(document).ajaxStart(function() {
-    $("#eval-btn").attr("disabled","true");
-});
-
-$(document).ajaxStop(function() {
-    $.unblockUI();
-    $("#eval-btn").removeAttr("disabled");
-});
+function showResult(result, isError) {
+    if (isError) {
+        $("#result").addClass("error");
+    } else {
+        $("#result").removeClass("error");
+    }
+    $("#result").val(result);
+    $(".resultContainer").show();
+    autosize.update($("#result"));
+}
