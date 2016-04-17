@@ -18,7 +18,7 @@ package com.kenshoo.freemarker.model;
 
 public class ExecuteResourceProblem {
     
-    private ExecuteResourceFields field;
+    private ExecuteResourceField field;
     private String message;
     
     // Needed for JSON unmarshalling
@@ -26,16 +26,16 @@ public class ExecuteResourceProblem {
         //
     }
     
-    public ExecuteResourceProblem(ExecuteResourceFields field, String message) {
+    public ExecuteResourceProblem(ExecuteResourceField field, String message) {
         this.field = field;
         this.message = message;
     }
 
-    public ExecuteResourceFields getField() {
+    public ExecuteResourceField getField() {
         return field;
     }
 
-    public void setField(ExecuteResourceFields field) {
+    public void setField(ExecuteResourceField field) {
         this.field = field;
     }
 

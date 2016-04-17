@@ -12,7 +12,7 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.request.RequestContextListener;
 
 import com.kenshoo.freemarker.model.ExecuteRequest;
-import com.kenshoo.freemarker.model.ExecuteResourceFields;
+import com.kenshoo.freemarker.model.ExecuteResourceField;
 import com.kenshoo.freemarker.model.ExecuteResourceProblem;
 import com.kenshoo.freemarker.model.ExecuteResponse;
 import com.sun.jersey.api.client.ClientResponse;
@@ -57,7 +57,7 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(containsProblem(response, ExecuteResourceFields.DATA_MODEL));
+        assertTrue(containsProblem(response, ExecuteResourceField.DATA_MODEL));
     }
 
     @Test
@@ -68,8 +68,8 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(containsProblem(response, ExecuteResourceFields.DATA_MODEL));
-        String problemMessage = getProblemMessage(response, ExecuteResourceFields.DATA_MODEL);
+        assertTrue(containsProblem(response, ExecuteResourceField.DATA_MODEL));
+        String problemMessage = getProblemMessage(response, ExecuteResourceField.DATA_MODEL);
         assertThat(problemMessage, containsString("data model"));
         assertThat(problemMessage, containsString("limit"));
     }
@@ -82,8 +82,8 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(containsProblem(response, ExecuteResourceFields.TEMPLATE));
-        String problemMessage = getProblemMessage(response, ExecuteResourceFields.TEMPLATE);
+        assertTrue(containsProblem(response, ExecuteResourceField.TEMPLATE));
+        String problemMessage = getProblemMessage(response, ExecuteResourceField.TEMPLATE);
         assertThat(problemMessage, containsString("template"));
         assertThat(problemMessage, containsString("limit"));
     }
@@ -101,11 +101,11 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertThat(getProblemMessage(response, ExecuteResourceFields.TEMPLATE), containsString("limit"));
-        assertThat(getProblemMessage(response, ExecuteResourceFields.DATA_MODEL), containsString("limit"));
-        assertThat(getProblemMessage(response, ExecuteResourceFields.OUTPUT_FORMAT), containsString("wrongOutputFormat"));
-        assertThat(getProblemMessage(response, ExecuteResourceFields.LOCALE), containsString("wrongLocale"));
-        assertThat(getProblemMessage(response, ExecuteResourceFields.TIME_ZONE), containsString("wrongTimeZone"));
+        assertThat(getProblemMessage(response, ExecuteResourceField.TEMPLATE), containsString("limit"));
+        assertThat(getProblemMessage(response, ExecuteResourceField.DATA_MODEL), containsString("limit"));
+        assertThat(getProblemMessage(response, ExecuteResourceField.OUTPUT_FORMAT), containsString("wrongOutputFormat"));
+        assertThat(getProblemMessage(response, ExecuteResourceField.LOCALE), containsString("wrongLocale"));
+        assertThat(getProblemMessage(response, ExecuteResourceField.TIME_ZONE), containsString("wrongTimeZone"));
     }
     
     private String create30KString() {
@@ -120,7 +120,7 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         return veryLongString;
     }
 
-    private boolean containsProblem(ExecuteResponse response, ExecuteResourceFields field) {
+    private boolean containsProblem(ExecuteResponse response, ExecuteResourceField field) {
         for (ExecuteResourceProblem problem : response.getProblems()) {
             if (problem.getField() == field) {
                 return true;
@@ -129,7 +129,7 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         return false;
     }
 
-    private String getProblemMessage(ExecuteResponse response, ExecuteResourceFields field) {
+    private String getProblemMessage(ExecuteResponse response, ExecuteResourceField field) {
         for (ExecuteResourceProblem problem : response.getProblems()) {
             if (problem.getField() == field) {
                 return problem.getMessage();

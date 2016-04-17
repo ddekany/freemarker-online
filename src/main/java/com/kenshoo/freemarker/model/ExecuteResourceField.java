@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 /**
  * Created by Pmuruge on 8/31/2015.
  */
-public enum ExecuteResourceFields {
+public enum ExecuteResourceField {
     DATA_MODEL("dataModel"),
     TEMPLATE("template"),
     OUTPUT_FORMAT("outputFormat"),
@@ -30,7 +30,7 @@ public enum ExecuteResourceFields {
     
     private final String fieldName;
     
-    private ExecuteResourceFields(String filedName) {
+    private ExecuteResourceField(String filedName) {
         this.fieldName = filedName;
     }
     
@@ -44,8 +44,8 @@ public enum ExecuteResourceFields {
     }
 
     @JsonCreator
-    public static ExecuteResourceFields fromEnumString(String val) {
-        for(ExecuteResourceFields field : values()) {
+    public static ExecuteResourceField fromEnumString(String val) {
+        for(ExecuteResourceField field : values()) {
             if(field.getFieldName().equals(val)) {
                 return field;
             }
