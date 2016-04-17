@@ -26,6 +26,8 @@ $( document).ready(function() {
             execute();
         }
     });
+    $.blockUI.defaults.fadeIn = 1000;
+    $.blockUI.defaults.fadeOut = 0;
 });
 
 var execute = function() {
