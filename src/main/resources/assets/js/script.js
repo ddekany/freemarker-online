@@ -30,7 +30,7 @@ $( document).ready(function(){
 
     var execute = function() {
         $.blockUI({ message: null });
-        if(validForm()) {
+        if (checkFormSendable()) {
             $("#error").hide();
             var payload = {
                 "template": $("#template").val(),
@@ -69,13 +69,14 @@ $( document).ready(function(){
             $.unblockUI();
         }
     };
-    var validForm = function() {
-        var error = true;
+    var checkFormSendable = function() {
         if($.trim($("#template").val()) === "" ) {
-            $("#error").show();
-            error = false;
+            $("#result").addClass("error");
+            $("#result").val("Template was empty; nothing to do.");
+            $(".resultContainer").show();
+            return false;
         }
-        return error;
+        return true;
     };
 
     $( document ).ajaxStart(function() {
