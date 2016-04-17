@@ -69,7 +69,7 @@ $( document).ready(function(){
     };
     var validForm = function() {
         var error = true;
-        if($("#template").val().trim() === "" ) {
+        if($.trim($("#template").val()) === "" ) {
             $("#error").show();
             error = false;
         }
