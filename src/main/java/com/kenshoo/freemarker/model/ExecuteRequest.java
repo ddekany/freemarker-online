@@ -21,6 +21,9 @@ package com.kenshoo.freemarker.model;
 public class ExecuteRequest {
     private String template;
     private String dataModel;
+    private String outputFormat;
+    private String locale;
+    private String timeZone;
 
     public ExecuteRequest() {
     }
@@ -46,4 +49,29 @@ public class ExecuteRequest {
     public void setTemplate(String template) {
         this.template = template;
     }
+
+    public String getOutputFormat() {
+        return outputFormat;
+    }
+
+    public void setOutputFormat(String outputFormat) {
+        this.outputFormat = outputFormat;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
+    }
+    
 }

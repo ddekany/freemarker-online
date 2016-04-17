@@ -1,3 +1,7 @@
+.clear {
+  clear: both;
+}
+
 #layout {
 	position: relative;
 	padding: 0;
@@ -82,10 +86,19 @@ textarea.source-code {
     margin-bottom: 0.25em;
 }
 
+.formPanel {
+	
+}
+
 .formBottomButtonsContainer {
-	margin-top: 1.5em;
+    margin-top: 1.5em;
 }
 
 .resultContainer {
     margin-top: 1em;
+}
+
+.horizontalBox {
+    display: inline-block;
+		padding-right: 1em;	
 }

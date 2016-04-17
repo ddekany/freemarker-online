@@ -34,7 +34,10 @@ $( document).ready(function(){
             $("#error").hide();
             var payload = {
                 "template": $("#template").val(),
-                "dataModel": $("#dataModel").val()
+                "dataModel": $("#dataModel").val(),
+                "outputFormat": $("#outputFormat").val(),
+                "locale": $("#locale").val(),
+                "timeZone": $("#timeZone").val()
             }
             $.ajax({
                 method: "POST",

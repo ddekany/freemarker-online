@@ -1,4 +1,5 @@
-<#escape x as x?html>
+<#ftl outputFormat="HTML">
+<#import "utils.ftl" as u>
 <!DOCTYPE html>
 <html>
 <head>
@@ -73,6 +74,17 @@ someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
                 <textarea id="dataModel" name="dataModel" class="pure-input-1 source-code"
                         placeholder='Enter one or more assignments (e.g., user = John Doe), starting each in its own line.'
                 >${dataModel}</textarea>
+                <div class="formPanel">
+                  <div class="horizontalBox">
+                    <@u.htmlSelect caption="Output format" name="outputFormat" selectionOptions=outputFormats />
+                  </div>
+                  <div class="horizontalBox">
+                    <@u.htmlSelect caption="Locale" name="locale" selectionOptions=locales />
+                  </div>
+                  <div class="horizontalBox">
+                    <@u.htmlSelect caption="Time zone" name="timeZone" selectionOptions=timeZones />
+                  </div>
+                </div>
                 <span id="error" class="errorMessage">Template cannot be empty</span>
                 <div class="formBottomButtonsContainer">
 	                <input id="eval-btn" type="button" value="Evaluate" class="pure-button pure-button-primary"/>
@@ -105,4 +117,3 @@ someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
 </div><!-- layout -->
 </body>
 </html>
-</#escape>

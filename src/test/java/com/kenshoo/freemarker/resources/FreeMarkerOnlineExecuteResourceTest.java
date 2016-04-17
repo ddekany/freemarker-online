@@ -1,7 +1,7 @@
 package com.kenshoo.freemarker.resources;
 
 import com.kenshoo.freemarker.model.ExecuteRequest;
-import com.kenshoo.freemarker.model.ExecuteResourceErrorFields;
+import com.kenshoo.freemarker.model.ExecuteResourceFields;
 import com.kenshoo.freemarker.model.ExecuteResponse;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
@@ -52,7 +52,7 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(response.getProblems().containsKey(ExecuteResourceErrorFields.DATA_MODEL));
+        assertTrue(response.getProblems().containsKey(ExecuteResourceFields.DATA_MODEL));
     }
 
     @Test
@@ -63,8 +63,8 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(response.getProblems().containsKey(ExecuteResourceErrorFields.DATA_MODEL));
-        String error = response.getProblems().get(ExecuteResourceErrorFields.DATA_MODEL);
+        assertTrue(response.getProblems().containsKey(ExecuteResourceFields.DATA_MODEL));
+        String error = response.getProblems().get(ExecuteResourceFields.DATA_MODEL);
         assertThat(error, containsString("data model"));
         assertThat(error, containsString("limit"));
     }
@@ -76,8 +76,8 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(response.getProblems().containsKey(ExecuteResourceErrorFields.TEMPLATE));
-        String error = response.getProblems().get(ExecuteResourceErrorFields.TEMPLATE);
+        assertTrue(response.getProblems().containsKey(ExecuteResourceFields.TEMPLATE));
+        String error = response.getProblems().get(ExecuteResourceFields.TEMPLATE);
         assertThat(error, containsString("template"));
         assertThat(error, containsString("limit"));
     }

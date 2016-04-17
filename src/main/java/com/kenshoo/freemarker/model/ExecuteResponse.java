@@ -22,10 +22,10 @@ import java.util.Map;
  */
 public class ExecuteResponse {
     private String result;
-    private Map<ExecuteResourceErrorFields, String> problems;
+    private Map<ExecuteResourceFields, String> problems;
     private boolean truncatedResult;
 
-    public ExecuteResponse(String result, Map<ExecuteResourceErrorFields, String> problems, boolean truncatedResult) {
+    public ExecuteResponse(String result, Map<ExecuteResourceFields, String> problems, boolean truncatedResult) {
         this.result = result;
         this.problems = problems;
         this.truncatedResult = truncatedResult;
@@ -35,11 +35,11 @@ public class ExecuteResponse {
 
     }
 
-    public Map<ExecuteResourceErrorFields, String> getProblems() {
+    public Map<ExecuteResourceFields, String> getProblems() {
         return problems;
     }
 
-    public void setProblems(Map<ExecuteResourceErrorFields, String> problems) {
+    public void setProblems(Map<ExecuteResourceFields, String> problems) {
         this.problems = problems;
     }
 
