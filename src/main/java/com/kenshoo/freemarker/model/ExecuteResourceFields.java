@@ -16,6 +16,7 @@
 package com.kenshoo.freemarker.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * Created by Pmuruge on 8/31/2015.
@@ -37,6 +38,7 @@ public enum ExecuteResourceFields {
         return getFieldName();
     }
     
+    @JsonValue
     public String getFieldName() {
         return fieldName;
     }

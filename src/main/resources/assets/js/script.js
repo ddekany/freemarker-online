@@ -48,12 +48,11 @@ $( document).ready(function(){
                 }
             })
                 .done(function( data ) {
-                    if(data.problems) {
-                        var error = data.problems.dataModel ? data.problems.dataModel : data.problems.template;
+                    if (data.problems && data.problems.length != 0) {
                         $("#result").addClass("error");
-                        $("#result").val(error);
-                    }
-                    else {
+                        // Currently we just show the first error:
+                        $("#result").val(data.problems[0].message);
+                    } else {
                         $("#result").removeClass("error");
                         $("#result").val(data.result);
                     }

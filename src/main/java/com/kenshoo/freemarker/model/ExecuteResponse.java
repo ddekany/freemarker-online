@@ -15,17 +15,17 @@
  */
 package com.kenshoo.freemarker.model;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Created by Pmuruge on 8/29/2015.
  */
 public class ExecuteResponse {
     private String result;
-    private Map<ExecuteResourceFields, String> problems;
+    private List<ExecuteResourceProblem> problems;
     private boolean truncatedResult;
 
-    public ExecuteResponse(String result, Map<ExecuteResourceFields, String> problems, boolean truncatedResult) {
+    public ExecuteResponse(String result, List<ExecuteResourceProblem> problems, boolean truncatedResult) {
         this.result = result;
         this.problems = problems;
         this.truncatedResult = truncatedResult;
@@ -35,11 +35,11 @@ public class ExecuteResponse {
 
     }
 
-    public Map<ExecuteResourceFields, String> getProblems() {
+    public List<ExecuteResourceProblem> getProblems() {
         return problems;
     }
 
-    public void setProblems(Map<ExecuteResourceFields, String> problems) {
+    public void setProblems(List<ExecuteResourceProblem> problems) {
         this.problems = problems;
     }
 
@@ -58,4 +58,5 @@ public class ExecuteResponse {
     public void setResult(String result) {
         this.result = result;
     }
+    
 }

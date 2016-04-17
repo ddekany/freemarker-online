@@ -16,7 +16,8 @@
 package com.kenshoo.freemarker.resources;
 
 import java.text.MessageFormat;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -37,6 +38,7 @@ import com.kenshoo.freemarker.model.ErrorCode;
 import com.kenshoo.freemarker.model.ErrorResponse;
 import com.kenshoo.freemarker.model.ExecuteRequest;
 import com.kenshoo.freemarker.model.ExecuteResourceFields;
+import com.kenshoo.freemarker.model.ExecuteResourceProblem;
 import com.kenshoo.freemarker.model.ExecuteResponse;
 import com.kenshoo.freemarker.services.AllowedSettingValuesMaps;
 import com.kenshoo.freemarker.services.FreeMarkerService;
@@ -82,36 +84,32 @@ public class FreeMarkerOnlineExecuteResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response formResult(
             ExecuteRequest payload) {
-        Map<ExecuteResourceFields, String> problems = new HashMap<ExecuteResourceFields, String>();
+        List<ExecuteResourceProblem> problems = new ArrayList<ExecuteResourceProblem>();
+        
         ExecuteResponse executeResponse = new ExecuteResponse();
         if (StringUtils.isBlank(payload.getTemplate()) && StringUtils.isBlank(payload.getDataModel())) {
             return Response.status(400).entity("Empty Template & data").build();
         }
 
+        if (payload.getTemplate().length() > MAX_TEMPLATE_INPUT_LENGTH) {
+            String error = formatMessage(MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, MAX_TEMPLATE_INPUT_LENGTH);
+            problems.add(new ExecuteResourceProblem(ExecuteResourceFields.TEMPLATE, error));
+        }
+        
+        Map<String, Object> dataModel = null;
         if (payload.getDataModel().length() > MAX_DATA_MODEL_INPUT_LENGTH) {
             String error = formatMessage(
                     MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, MAX_DATA_MODEL_INPUT_LENGTH);
-            problems.put(ExecuteResourceFields.DATA_MODEL, error);
-            executeResponse.setProblems(problems);
-            return buildFreeMarkerResponse(executeResponse);
-        }
-        final Map<String, Object> dataModel;
-        try {
-            dataModel = DataModelParser.parse(payload.getDataModel(), freeMarkerService.getFreeMarkerTimeZone());
-        } catch (DataModelParsingException e) {
-            String error = e.getMessage();
-            problems.put(ExecuteResourceFields.DATA_MODEL, decorateResultText(error));
-            executeResponse.setProblems(problems);
-            return buildFreeMarkerResponse(executeResponse);
+            problems.add(new ExecuteResourceProblem(ExecuteResourceFields.DATA_MODEL, error));
+        } else {
+            try {
+                dataModel = DataModelParser.parse(payload.getDataModel(), freeMarkerService.getFreeMarkerTimeZone());
+            } catch (DataModelParsingException e) {
+                String error = e.getMessage();
+                problems.add(new ExecuteResourceProblem(ExecuteResourceFields.DATA_MODEL, decorateResultText(error)));
+            }
         }
 
-        if (payload.getTemplate().length() > MAX_TEMPLATE_INPUT_LENGTH) {
-            String error = formatMessage(MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, MAX_TEMPLATE_INPUT_LENGTH);
-            problems.put(ExecuteResourceFields.TEMPLATE, error);
-            executeResponse.setProblems(problems);
-            return buildFreeMarkerResponse(executeResponse);
-        }
-        
         final OutputFormat outputFormat;
         {
             String outputFormatStr = payload.getOutputFormat();
@@ -120,9 +118,9 @@ public class FreeMarkerOnlineExecuteResource {
             } else {
                 outputFormat = AllowedSettingValuesMaps.OUTPUT_FORMAT_MAP.get(outputFormatStr);
                 if (outputFormat == null) {
-                    problems.put(
+                    problems.add(new ExecuteResourceProblem(
                             ExecuteResourceFields.OUTPUT_FORMAT,
-                            formatMessage(UNKNOWN_OUTPUT_FORMAT_ERROR_MESSAGE, outputFormatStr));
+                            formatMessage(UNKNOWN_OUTPUT_FORMAT_ERROR_MESSAGE, outputFormatStr)));
                 }
             }
         }
@@ -135,9 +133,9 @@ public class FreeMarkerOnlineExecuteResource {
             } else {
                 locale = AllowedSettingValuesMaps.LOCALE_MAP.get(localeStr);
                 if (locale == null) {
-                    problems.put(
+                    problems.add(new ExecuteResourceProblem(
                             ExecuteResourceFields.LOCALE,
-                            formatMessage(UNKNOWN_LOCALE_ERROR_MESSAGE, localeStr));
+                            formatMessage(UNKNOWN_LOCALE_ERROR_MESSAGE, localeStr)));
                 }
             }
         }
@@ -150,11 +148,16 @@ public class FreeMarkerOnlineExecuteResource {
             } else {
                 timeZone = AllowedSettingValuesMaps.TIME_ZONE_MAP.get(timeZoneStr);
                 if (timeZone == null) {
-                    problems.put(
-                            ExecuteResourceFields.LOCALE,
-                            formatMessage(UNKNOWN_TIME_ZONE_ERROR_MESSAGE, timeZoneStr));
+                    problems.add(new ExecuteResourceProblem(
+                            ExecuteResourceFields.TIME_ZONE,
+                            formatMessage(UNKNOWN_TIME_ZONE_ERROR_MESSAGE, timeZoneStr)));
                 }
             }
+        }
+        
+        if (!problems.isEmpty()) {
+            executeResponse.setProblems(problems);
+            return buildFreeMarkerResponse(executeResponse);
         }
         
         FreeMarkerServiceResponse freeMarkerServiceResponse;
@@ -174,7 +177,7 @@ public class FreeMarkerOnlineExecuteResource {
         } else {
             Throwable failureReason = freeMarkerServiceResponse.getFailureReason();
             String error = ExceptionUtils.getMessageWithCauses(failureReason);
-            problems.put(ExecuteResourceFields.TEMPLATE, error);
+            problems.add(new ExecuteResourceProblem(ExecuteResourceFields.TEMPLATE, error));
             executeResponse.setProblems(problems);
             return buildFreeMarkerResponse(executeResponse);
         }

@@ -85,11 +85,11 @@ someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
                     <@u.htmlSelect caption="Time zone" name="timeZone" selectionOptions=timeZones />
                   </div>
                 </div>
-                <span id="error" class="errorMessage">Template cannot be empty</span>
                 <div class="formBottomButtonsContainer">
 	                <input id="eval-btn" type="button" value="Evaluate" class="pure-button pure-button-primary"/>
 	                &nbsp; <span class="faint">Ctrl+Enter in input fields will submit this form too</span>
                 </div>
+                <span id="error" class="errorMessage">Template cannot be empty</span>
                 <div style="display:none" class="resultContainer">
                     <label for="result">Result</label>
                     <textarea id="result" class="pure-input-1 source-code" readonly></textarea>

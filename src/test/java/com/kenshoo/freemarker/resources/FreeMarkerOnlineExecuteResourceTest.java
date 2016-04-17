@@ -1,20 +1,25 @@
 package com.kenshoo.freemarker.resources;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.request.RequestContextListener;
+
 import com.kenshoo.freemarker.model.ExecuteRequest;
 import com.kenshoo.freemarker.model.ExecuteResourceFields;
+import com.kenshoo.freemarker.model.ExecuteResourceProblem;
 import com.kenshoo.freemarker.model.ExecuteResponse;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.request.RequestContextListener;
-
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.*;
 
 /**
  * Created by Pmuruge on 8/29/2015.
@@ -52,7 +57,7 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(response.getProblems().containsKey(ExecuteResourceFields.DATA_MODEL));
+        assertTrue(containsProblem(response, ExecuteResourceFields.DATA_MODEL));
     }
 
     @Test
@@ -63,11 +68,12 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(response.getProblems().containsKey(ExecuteResourceFields.DATA_MODEL));
-        String error = response.getProblems().get(ExecuteResourceFields.DATA_MODEL);
-        assertThat(error, containsString("data model"));
-        assertThat(error, containsString("limit"));
+        assertTrue(containsProblem(response, ExecuteResourceFields.DATA_MODEL));
+        String problemMessage = getProblemMessage(response, ExecuteResourceFields.DATA_MODEL);
+        assertThat(problemMessage, containsString("data model"));
+        assertThat(problemMessage, containsString("limit"));
     }
+
     @Test
     public void testLongTemplate() throws Exception {
         String longTemplate = create30KString();
@@ -76,12 +82,32 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         assertEquals(200, resp.getStatus());
         ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
         assertNotNull(response.getProblems());
-        assertTrue(response.getProblems().containsKey(ExecuteResourceFields.TEMPLATE));
-        String error = response.getProblems().get(ExecuteResourceFields.TEMPLATE);
-        assertThat(error, containsString("template"));
-        assertThat(error, containsString("limit"));
+        assertTrue(containsProblem(response, ExecuteResourceFields.TEMPLATE));
+        String problemMessage = getProblemMessage(response, ExecuteResourceFields.TEMPLATE);
+        assertThat(problemMessage, containsString("template"));
+        assertThat(problemMessage, containsString("limit"));
     }
 
+    @Test
+    public void testMultipleErrorsDataModel() throws Exception {
+        ExecuteRequest req = new ExecuteRequest(create30KString(), create30KString());
+        req.setOutputFormat("wrongOutputFormat");
+        req.setLocale("wrongLocale");
+        req.setTimeZone("wrongTimeZone");
+        
+        ClientResponse resp = client().resource(getBaseURI() + EXECUTE_API)
+                .header("Content-Type", "application/json").entity(req).post(ClientResponse.class);
+        
+        assertEquals(200, resp.getStatus());
+        ExecuteResponse response = resp.getEntity(ExecuteResponse.class);
+        assertNotNull(response.getProblems());
+        assertThat(getProblemMessage(response, ExecuteResourceFields.TEMPLATE), containsString("limit"));
+        assertThat(getProblemMessage(response, ExecuteResourceFields.DATA_MODEL), containsString("limit"));
+        assertThat(getProblemMessage(response, ExecuteResourceFields.OUTPUT_FORMAT), containsString("wrongOutputFormat"));
+        assertThat(getProblemMessage(response, ExecuteResourceFields.LOCALE), containsString("wrongLocale"));
+        assertThat(getProblemMessage(response, ExecuteResourceFields.TIME_ZONE), containsString("wrongTimeZone"));
+    }
+    
     private String create30KString() {
         final String veryLongString;
         {
@@ -94,6 +120,22 @@ public class FreeMarkerOnlineExecuteResourceTest extends JerseyTest {
         return veryLongString;
     }
 
+    private boolean containsProblem(ExecuteResponse response, ExecuteResourceFields field) {
+        for (ExecuteResourceProblem problem : response.getProblems()) {
+            if (problem.getField() == field) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-
+    private String getProblemMessage(ExecuteResponse response, ExecuteResourceFields field) {
+        for (ExecuteResourceProblem problem : response.getProblems()) {
+            if (problem.getField() == field) {
+                return problem.getMessage();
+            }
+        }
+        return null;
+    }
+    
 }
