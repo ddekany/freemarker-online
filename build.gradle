@@ -57,6 +57,7 @@ dependencies {
     compile libraries.freemarker
     compile libraries.jackson_databind
     compile libraries.commonLangs
+    compile libraries.findBugs
 
     testCompile libraries.selenium_java
     testCompile libraries.jersey_grrizle
