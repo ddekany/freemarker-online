@@ -21,7 +21,7 @@ $( document).ready(function(){
     $("#eval-btn").click(function(){
         execute();
     });
-    $('#templateAndModelForm textarea').keydown(function (e) {
+    $('#templateAndModelForm textarea, #templateAndModelForm select').keydown(function (e) {
         if ((e.keyCode == 10 || e.keyCode == 13) && e.ctrlKey) {
             execute();
         }
