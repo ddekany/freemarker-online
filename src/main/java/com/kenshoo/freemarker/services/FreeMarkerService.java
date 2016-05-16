@@ -260,7 +260,7 @@ public class FreeMarkerService {
         private final TimeZone timeZone;
         private boolean taskEnded;
 
-        public CalculateTemplateOutput(String templateSourceCode, Object dataModel,
+        private CalculateTemplateOutput(String templateSourceCode, Object dataModel,
                 OutputFormat outputFormat, Locale locale, TimeZone timeZone) {
             this.templateSourceCode = templateSourceCode;
             this.dataModel = dataModel;
@@ -346,18 +346,18 @@ public class FreeMarkerService {
             }
         }
         
-        public synchronized boolean isTemplateExecutionStarted() {
+        private synchronized boolean isTemplateExecutionStarted() {
             return templateExecutionStarted;
         }
 
-        public synchronized boolean isTaskEnded() {
+        private synchronized boolean isTaskEnded() {
             return taskEnded;
         }
         
         /**
          * @return non-{@code null} after the task execution has actually started, but before it has finished.
          */
-        public synchronized Thread getTemplateExecutorThread() {
+        private synchronized Thread getTemplateExecutorThread() {
             return templateExecutorThread;
         }
         
