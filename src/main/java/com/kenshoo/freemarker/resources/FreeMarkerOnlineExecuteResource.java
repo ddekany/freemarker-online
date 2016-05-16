@@ -83,107 +83,127 @@ public class FreeMarkerOnlineExecuteResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response formResult(
-            ExecuteRequest payload) {
-        List<ExecuteResourceProblem> problems = new ArrayList<ExecuteResourceProblem>();
+            ExecuteRequest req) {
+        ExecuteResponse resp = new ExecuteResponse();
         
-        ExecuteResponse executeResponse = new ExecuteResponse();
-        if (StringUtils.isBlank(payload.getTemplate()) && StringUtils.isBlank(payload.getDataModel())) {
+        if (StringUtils.isBlank(req.getTemplate()) && StringUtils.isBlank(req.getDataModel())) {
             return Response.status(400).entity("Empty Template & data").build();
         }
 
-        if (payload.getTemplate().length() > MAX_TEMPLATE_INPUT_LENGTH) {
-            String error = formatMessage(MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, MAX_TEMPLATE_INPUT_LENGTH);
-            problems.add(new ExecuteResourceProblem(ExecuteResourceField.TEMPLATE, error));
-        }
+        List<ExecuteResourceProblem> problems = new ArrayList<ExecuteResourceProblem>();
         
-        Map<String, Object> dataModel = null;
-        if (payload.getDataModel().length() > MAX_DATA_MODEL_INPUT_LENGTH) {
-            String error = formatMessage(
-                    MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, MAX_DATA_MODEL_INPUT_LENGTH);
-            problems.add(new ExecuteResourceProblem(ExecuteResourceField.DATA_MODEL, error));
-        } else {
-            try {
-                dataModel = DataModelParser.parse(payload.getDataModel(), freeMarkerService.getFreeMarkerTimeZone());
-            } catch (DataModelParsingException e) {
-                String error = e.getMessage();
-                problems.add(new ExecuteResourceProblem(ExecuteResourceField.DATA_MODEL, decorateResultText(error)));
-            }
-        }
-
-        final OutputFormat outputFormat;
-        {
-            String outputFormatStr = payload.getOutputFormat();
-            if (StringUtils.isBlank(outputFormatStr)) {
-                outputFormat = AllowedSettingValuesMaps.DEFAULT_OUTPUT_FORMAT;
-            } else {
-                outputFormat = AllowedSettingValuesMaps.OUTPUT_FORMAT_MAP.get(outputFormatStr);
-                if (outputFormat == null) {
-                    problems.add(new ExecuteResourceProblem(
-                            ExecuteResourceField.OUTPUT_FORMAT,
-                            formatMessage(UNKNOWN_OUTPUT_FORMAT_ERROR_MESSAGE, outputFormatStr)));
-                }
-            }
-        }
-        
-        final Locale locale;
-        {
-            String localeStr = payload.getLocale();
-            if (StringUtils.isBlank(localeStr)) {
-                locale = AllowedSettingValuesMaps.DEFAULT_LOCALE;
-            } else {
-                locale = AllowedSettingValuesMaps.LOCALE_MAP.get(localeStr);
-                if (locale == null) {
-                    problems.add(new ExecuteResourceProblem(
-                            ExecuteResourceField.LOCALE,
-                            formatMessage(UNKNOWN_LOCALE_ERROR_MESSAGE, localeStr)));
-                }
-            }
-        }
-        
-        final TimeZone timeZone;
-        {
-            String timeZoneStr = payload.getTimeZone();
-            if (StringUtils.isBlank(timeZoneStr)) {
-                timeZone = AllowedSettingValuesMaps.DEFAULT_TIME_ZONE;
-            } else {
-                timeZone = AllowedSettingValuesMaps.TIME_ZONE_MAP.get(timeZoneStr);
-                if (timeZone == null) {
-                    problems.add(new ExecuteResourceProblem(
-                            ExecuteResourceField.TIME_ZONE,
-                            formatMessage(UNKNOWN_TIME_ZONE_ERROR_MESSAGE, timeZoneStr)));
-                }
-            }
-        }
+        String template = getTemplate(req, problems);
+        Map<String, Object> dataModel = getDataModel(req, problems);
+        OutputFormat outputFormat = getOutputFormat(req, problems);
+        Locale locale = getLocale(req, problems);
+        TimeZone timeZone = getTimeZone(req, problems);
         
         if (!problems.isEmpty()) {
-            executeResponse.setProblems(problems);
-            return buildFreeMarkerResponse(executeResponse);
+            resp.setProblems(problems);
+            return buildFreeMarkerResponse(resp);
         }
         
         FreeMarkerServiceResponse freeMarkerServiceResponse;
         try {
             freeMarkerServiceResponse = freeMarkerService.calculateTemplateOutput(
-                    payload.getTemplate(), dataModel,
+                    template, dataModel,
                     outputFormat, locale, timeZone);
         } catch (RejectedExecutionException e) {
             String error = SERVICE_OVERBURDEN_ERROR_MESSAGE;
             return Response.serverError().entity(new ErrorResponse(ErrorCode.FREEMARKER_SERVICE_TIMEOUT, error)).build();
         }
-        if (freeMarkerServiceResponse.isSuccesful()){
-            String result = freeMarkerServiceResponse.getTemplateOutput();
-            executeResponse.setResult(result);
-            executeResponse.setTruncatedResult(freeMarkerServiceResponse.isTemplateOutputTruncated());
-            return buildFreeMarkerResponse(executeResponse);
-        } else {
+        if (!freeMarkerServiceResponse.isSuccesful()){
             Throwable failureReason = freeMarkerServiceResponse.getFailureReason();
             String error = ExceptionUtils.getMessageWithCauses(failureReason);
             problems.add(new ExecuteResourceProblem(ExecuteResourceField.TEMPLATE, error));
-            executeResponse.setProblems(problems);
-            return buildFreeMarkerResponse(executeResponse);
+            resp.setProblems(problems);
+            return buildFreeMarkerResponse(resp);
         }
 
+        String result = freeMarkerServiceResponse.getTemplateOutput();
+        resp.setResult(result);
+        resp.setTruncatedResult(freeMarkerServiceResponse.isTemplateOutputTruncated());
+        return buildFreeMarkerResponse(resp);
     }
+
+    private String getTemplate(ExecuteRequest req, List<ExecuteResourceProblem> problems) {
+        String template = req.getTemplate();
+        
+        if (template.length() > MAX_TEMPLATE_INPUT_LENGTH) {
+            String error = formatMessage(MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, MAX_TEMPLATE_INPUT_LENGTH);
+            problems.add(new ExecuteResourceProblem(ExecuteResourceField.TEMPLATE, error));
+            return null;
+        }
+        
+        return template;
+    }
+
+    private Map<String, Object> getDataModel(ExecuteRequest req, List<ExecuteResourceProblem> problems) {
+        String dataModel = req.getDataModel();
+        
+        if (dataModel.length() > MAX_DATA_MODEL_INPUT_LENGTH) {
+            String error = formatMessage(
+                    MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, MAX_DATA_MODEL_INPUT_LENGTH);
+            problems.add(new ExecuteResourceProblem(ExecuteResourceField.DATA_MODEL, error));
+            return null;
+        }
+        
+        try {
+            return DataModelParser.parse(dataModel, freeMarkerService.getFreeMarkerTimeZone());
+        } catch (DataModelParsingException e) {
+            problems.add(new ExecuteResourceProblem(ExecuteResourceField.DATA_MODEL, decorateResultText(e.getMessage())));
+            return null;
+        }
+    }
+
+    private OutputFormat getOutputFormat(ExecuteRequest req, List<ExecuteResourceProblem> problems) {
+        String outputFormatStr = req.getOutputFormat();
+        
+        if (StringUtils.isBlank(outputFormatStr)) {
+            return AllowedSettingValuesMaps.DEFAULT_OUTPUT_FORMAT;
+        }
     
+        OutputFormat outputFormat = AllowedSettingValuesMaps.OUTPUT_FORMAT_MAP.get(outputFormatStr);
+        if (outputFormat == null) {
+            problems.add(new ExecuteResourceProblem(
+                    ExecuteResourceField.OUTPUT_FORMAT,
+                    formatMessage(UNKNOWN_OUTPUT_FORMAT_ERROR_MESSAGE, outputFormatStr)));
+        }
+        return outputFormat;
+    }
+
+    private Locale getLocale(ExecuteRequest req, List<ExecuteResourceProblem> problems) {
+        String localeStr = req.getLocale();
+        
+        if (StringUtils.isBlank(localeStr)) {
+            return AllowedSettingValuesMaps.DEFAULT_LOCALE;
+        }
+        
+        Locale locale = AllowedSettingValuesMaps.LOCALE_MAP.get(localeStr);
+        if (locale == null) {
+            problems.add(new ExecuteResourceProblem(
+                    ExecuteResourceField.LOCALE,
+                    formatMessage(UNKNOWN_LOCALE_ERROR_MESSAGE, localeStr)));
+        }
+        return locale;
+    }
+
+    private TimeZone getTimeZone(ExecuteRequest req, List<ExecuteResourceProblem> problems) {
+        String timeZoneStr = req.getTimeZone();
+        
+        if (StringUtils.isBlank(timeZoneStr)) {
+            return AllowedSettingValuesMaps.DEFAULT_TIME_ZONE;
+        }
+        
+        TimeZone timeZone = AllowedSettingValuesMaps.TIME_ZONE_MAP.get(timeZoneStr);
+        if (timeZone == null) {
+            problems.add(new ExecuteResourceProblem(
+                    ExecuteResourceField.TIME_ZONE,
+                    formatMessage(UNKNOWN_TIME_ZONE_ERROR_MESSAGE, timeZoneStr)));
+        }
+        return timeZone;
+    }
+
     private Response buildFreeMarkerResponse(ExecuteResponse executeResponse){
         return Response.ok().entity(executeResponse).build();
     }
