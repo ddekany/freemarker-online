@@ -15,9 +15,14 @@
  */
 package com.kenshoo.freemarker.resources;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyMap;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
+
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +32,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.kenshoo.freemarker.services.FreeMarkerService;
 import com.kenshoo.freemarker.view.FreeMarkerOnlineView;
+
+import freemarker.core.OutputFormat;
 
 /**
  * Created with IntelliJ IDEA.
@@ -45,7 +52,9 @@ public class FreeMarkerOnlineResourceTest {
 
     @Test
     public void testInitialForm() {
-        when(freeMarkerService.calculateTemplateOutput(anyString(), anyMap())).thenThrow(new AssertionError());
+        when(freeMarkerService.calculateTemplateOutput(
+                anyString(), anyMap(), any(OutputFormat.class), any(Locale.class), any(TimeZone.class)))
+                .thenThrow(new AssertionError());
         FreeMarkerOnlineView view = freeMarkerOnlineResultResource.blankForm();
         assertEquals(view.getTemplate(), "");
         assertEquals(view.getDataModel(), "");
@@ -53,8 +62,10 @@ public class FreeMarkerOnlineResourceTest {
     
     @Test
     public void testPostedBlankForm() {
-        when(freeMarkerService.calculateTemplateOutput(anyString(), anyMap())).thenThrow(new AssertionError());
-        FreeMarkerOnlineView view = freeMarkerOnlineResultResource.formResult(null, null);
+        when(freeMarkerService.calculateTemplateOutput(
+                anyString(), anyMap(), any(OutputFormat.class), any(Locale.class), any(TimeZone.class)))
+                .thenThrow(new AssertionError());
+        FreeMarkerOnlineView view = freeMarkerOnlineResultResource.formResult(null, null, null, null, null);
         assertEquals(view.getTemplate(), "");
         assertEquals(view.getDataModel(), "");
     }

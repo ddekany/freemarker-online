@@ -15,31 +15,45 @@
  */
 package com.kenshoo.freemarker.resources;
 
-import com.kenshoo.freemarker.model.*;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.concurrent.RejectedExecutionException;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.kenshoo.freemarker.model.ErrorCode;
+import com.kenshoo.freemarker.model.ErrorResponse;
+import com.kenshoo.freemarker.model.ExecuteRequest;
+import com.kenshoo.freemarker.model.ExecuteResourceField;
+import com.kenshoo.freemarker.model.ExecuteResourceProblem;
+import com.kenshoo.freemarker.model.ExecuteResponse;
+import com.kenshoo.freemarker.services.AllowedSettingValuesMaps;
 import com.kenshoo.freemarker.services.FreeMarkerService;
 import com.kenshoo.freemarker.services.FreeMarkerServiceResponse;
 import com.kenshoo.freemarker.util.DataModelParser;
 import com.kenshoo.freemarker.util.DataModelParsingException;
 import com.kenshoo.freemarker.util.ExceptionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.RejectedExecutionException;
+import freemarker.core.OutputFormat;
 
 /**
  * Created by pradeep on 8/28/2015.
  */
 @Path("/api/execute")
 @Component
-
 public class FreeMarkerOnlineExecuteResource {
     private static final int MAX_TEMPLATE_INPUT_LENGTH = 10000;
 
@@ -50,6 +64,10 @@ public class FreeMarkerOnlineExecuteResource {
 
     private static final String MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE
             = "The data model length has exceeded the {0} character limit set for this service.";
+
+    private static final String UNKNOWN_OUTPUT_FORMAT_ERROR_MESSAGE = "Unknown output format: {0}";
+    private static final String UNKNOWN_LOCALE_ERROR_MESSAGE = "Unknown locale: {0}";
+    private static final String UNKNOWN_TIME_ZONE_ERROR_MESSAGE = "Unknown time zone: {0}";
 
     private static final String SERVICE_OVERBURDEN_ERROR_MESSAGE
             = "Sorry, the service is overburden and couldn't handle your request now. Try again later.";
@@ -65,62 +83,137 @@ public class FreeMarkerOnlineExecuteResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response formResult(
-            ExecuteRequest payload) {
-        Map<ExecuteResourceErrorFields, String> problems = new HashMap<ExecuteResourceErrorFields, String>();
-        ExecuteResponse executeResponse = new ExecuteResponse();
-        if (StringUtils.isBlank(payload.getTemplate()) && StringUtils.isBlank(payload.getDataModel())) {
+            ExecuteRequest req) {
+        ExecuteResponse resp = new ExecuteResponse();
+        
+        if (StringUtils.isBlank(req.getTemplate()) && StringUtils.isBlank(req.getDataModel())) {
             return Response.status(400).entity("Empty Template & data").build();
         }
 
-        if (payload.getDataModel().length() > MAX_DATA_MODEL_INPUT_LENGTH) {
-            String error = new MessageFormat(MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, Locale.US)
-                    .format(new Object[] { MAX_DATA_MODEL_INPUT_LENGTH });
-            problems.put(ExecuteResourceErrorFields.DATA_MODEL, error);
-            executeResponse.setProblems(problems);
-            return buildFreeMarkerResponse(executeResponse);
+        List<ExecuteResourceProblem> problems = new ArrayList<ExecuteResourceProblem>();
+        
+        String template = getTemplate(req, problems);
+        Map<String, Object> dataModel = getDataModel(req, problems);
+        OutputFormat outputFormat = getOutputFormat(req, problems);
+        Locale locale = getLocale(req, problems);
+        TimeZone timeZone = getTimeZone(req, problems);
+        
+        if (!problems.isEmpty()) {
+            resp.setProblems(problems);
+            return buildFreeMarkerResponse(resp);
         }
-        Map<String, Object> dataModel;
-        try {
-            dataModel = DataModelParser.parse(payload.getDataModel(), freeMarkerService.getFreeMarkerTimeZone());
-        } catch (DataModelParsingException e) {
-            String error = e.getMessage();
-            problems.put(ExecuteResourceErrorFields.DATA_MODEL, decorateResultText(error));
-            executeResponse.setProblems(problems);
-            return buildFreeMarkerResponse(executeResponse);
-        }
-
-        if (payload.getTemplate().length() > MAX_TEMPLATE_INPUT_LENGTH) {
-            String error = new MessageFormat(MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, Locale.US)
-                            .format(new Object[] { MAX_TEMPLATE_INPUT_LENGTH });
-            problems.put(ExecuteResourceErrorFields.TEMPLATE, error);
-            executeResponse.setProblems(problems);
-            return buildFreeMarkerResponse(executeResponse);
-        }
+        
         FreeMarkerServiceResponse freeMarkerServiceResponse;
         try {
-            freeMarkerServiceResponse = freeMarkerService.calculateTemplateOutput(payload.getTemplate(), dataModel);
+            freeMarkerServiceResponse = freeMarkerService.calculateTemplateOutput(
+                    template, dataModel,
+                    outputFormat, locale, timeZone);
         } catch (RejectedExecutionException e) {
             String error = SERVICE_OVERBURDEN_ERROR_MESSAGE;
             return Response.serverError().entity(new ErrorResponse(ErrorCode.FREEMARKER_SERVICE_TIMEOUT, error)).build();
         }
-        if (freeMarkerServiceResponse.isSuccesful()){
-            String result = freeMarkerServiceResponse.getTemplateOutput();
-            executeResponse.setResult(result);
-            executeResponse.setTruncatedResult(freeMarkerServiceResponse.isTemplateOutputTruncated());
-            return buildFreeMarkerResponse(executeResponse);
-        } else {
+        if (!freeMarkerServiceResponse.isSuccesful()){
             Throwable failureReason = freeMarkerServiceResponse.getFailureReason();
             String error = ExceptionUtils.getMessageWithCauses(failureReason);
-            problems.put(ExecuteResourceErrorFields.TEMPLATE, error);
-            executeResponse.setProblems(problems);
-            return buildFreeMarkerResponse(executeResponse);
+            problems.add(new ExecuteResourceProblem(ExecuteResourceField.TEMPLATE, error));
+            resp.setProblems(problems);
+            return buildFreeMarkerResponse(resp);
         }
 
+        String result = freeMarkerServiceResponse.getTemplateOutput();
+        resp.setResult(result);
+        resp.setTruncatedResult(freeMarkerServiceResponse.isTemplateOutputTruncated());
+        return buildFreeMarkerResponse(resp);
     }
+
+    private String getTemplate(ExecuteRequest req, List<ExecuteResourceProblem> problems) {
+        String template = req.getTemplate();
+        
+        if (template.length() > MAX_TEMPLATE_INPUT_LENGTH) {
+            String error = formatMessage(MAX_TEMPLATE_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, MAX_TEMPLATE_INPUT_LENGTH);
+            problems.add(new ExecuteResourceProblem(ExecuteResourceField.TEMPLATE, error));
+            return null;
+        }
+        
+        return template;
+    }
+
+    private Map<String, Object> getDataModel(ExecuteRequest req, List<ExecuteResourceProblem> problems) {
+        String dataModel = req.getDataModel();
+        
+        if (dataModel.length() > MAX_DATA_MODEL_INPUT_LENGTH) {
+            String error = formatMessage(
+                    MAX_DATA_MODEL_INPUT_LENGTH_EXCEEDED_ERROR_MESSAGE, MAX_DATA_MODEL_INPUT_LENGTH);
+            problems.add(new ExecuteResourceProblem(ExecuteResourceField.DATA_MODEL, error));
+            return null;
+        }
+        
+        try {
+            return DataModelParser.parse(dataModel, freeMarkerService.getFreeMarkerTimeZone());
+        } catch (DataModelParsingException e) {
+            problems.add(new ExecuteResourceProblem(ExecuteResourceField.DATA_MODEL, decorateResultText(e.getMessage())));
+            return null;
+        }
+    }
+
+    private OutputFormat getOutputFormat(ExecuteRequest req, List<ExecuteResourceProblem> problems) {
+        String outputFormatStr = req.getOutputFormat();
+        
+        if (StringUtils.isBlank(outputFormatStr)) {
+            return AllowedSettingValuesMaps.DEFAULT_OUTPUT_FORMAT;
+        }
+    
+        OutputFormat outputFormat = AllowedSettingValuesMaps.OUTPUT_FORMAT_MAP.get(outputFormatStr);
+        if (outputFormat == null) {
+            problems.add(new ExecuteResourceProblem(
+                    ExecuteResourceField.OUTPUT_FORMAT,
+                    formatMessage(UNKNOWN_OUTPUT_FORMAT_ERROR_MESSAGE, outputFormatStr)));
+        }
+        return outputFormat;
+    }
+
+    private Locale getLocale(ExecuteRequest req, List<ExecuteResourceProblem> problems) {
+        String localeStr = req.getLocale();
+        
+        if (StringUtils.isBlank(localeStr)) {
+            return AllowedSettingValuesMaps.DEFAULT_LOCALE;
+        }
+        
+        Locale locale = AllowedSettingValuesMaps.LOCALE_MAP.get(localeStr);
+        if (locale == null) {
+            problems.add(new ExecuteResourceProblem(
+                    ExecuteResourceField.LOCALE,
+                    formatMessage(UNKNOWN_LOCALE_ERROR_MESSAGE, localeStr)));
+        }
+        return locale;
+    }
+
+    private TimeZone getTimeZone(ExecuteRequest req, List<ExecuteResourceProblem> problems) {
+        String timeZoneStr = req.getTimeZone();
+        
+        if (StringUtils.isBlank(timeZoneStr)) {
+            return AllowedSettingValuesMaps.DEFAULT_TIME_ZONE;
+        }
+        
+        TimeZone timeZone = AllowedSettingValuesMaps.TIME_ZONE_MAP.get(timeZoneStr);
+        if (timeZone == null) {
+            problems.add(new ExecuteResourceProblem(
+                    ExecuteResourceField.TIME_ZONE,
+                    formatMessage(UNKNOWN_TIME_ZONE_ERROR_MESSAGE, timeZoneStr)));
+        }
+        return timeZone;
+    }
+
     private Response buildFreeMarkerResponse(ExecuteResponse executeResponse){
         return Response.ok().entity(executeResponse).build();
     }
+    
     private String decorateResultText(String resultText) {
         return DATA_MODEL_ERROR_MESSAGE_HEADING + "\n\n" + resultText + "\n\n" + DATA_MODEL_ERROR_MESSAGE_FOOTER;
     }
+    
+    private String formatMessage(String key, Object... params) {
+        return new MessageFormat(key, Locale.US).format(params);
+    }
+    
 }

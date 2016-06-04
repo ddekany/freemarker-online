@@ -15,6 +15,7 @@
  */
 package com.kenshoo.freemarker.services;
 
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -41,8 +42,10 @@ import com.kenshoo.freemarker.util.LengthLimitExceededException;
 import com.kenshoo.freemarker.util.LengthLimitedWriter;
 
 import freemarker.core.FreeMarkerInternalsAccessor;
+import freemarker.core.OutputFormat;
 import freemarker.core.ParseException;
 import freemarker.core.TemplateClassResolver;
+import freemarker.core.TemplateConfiguration;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -89,12 +92,24 @@ public class FreeMarkerService {
         freeMarkerConfig.setNewBuiltinClassResolver(TemplateClassResolver.ALLOWS_NOTHING_RESOLVER);
         freeMarkerConfig.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         freeMarkerConfig.setLogTemplateExceptions(false);
-        freeMarkerConfig.setLocale(Locale.US);
-        freeMarkerConfig.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
+        freeMarkerConfig.setLocale(AllowedSettingValuesMaps.DEFAULT_LOCALE);
+        freeMarkerConfig.setTimeZone(AllowedSettingValuesMaps.DEFAULT_TIME_ZONE);
+        freeMarkerConfig.setOutputFormat(AllowedSettingValuesMaps.DEFAULT_OUTPUT_FORMAT);
         freeMarkerConfig.setOutputEncoding("UTF-8");
     }
     
     /**
+     * @param templateSourceCode
+     *            The FTL to execute; not {@code null}.
+     * @param dataModel
+     *            The FreeMarker data-model to execute the template with; maybe {@code null}.
+     * @param outputFormat
+     *            The output format to execute the template with; maybe {@code null}.
+     * @param locale
+     *            The locale to execute the template with; maybe {@code null}.
+     * @param timeZone
+     *            The time zone to execute the template with; maybe {@code null}.
+     * 
      * @return The result of the template parsing and evaluation. The method won't throw exception if that fails due to
      *         errors in the template provided, instead it indicates this fact in the response object. That's because
      *         this is a service for trying out the template language, so such errors are part of the normal operation.
@@ -102,14 +117,16 @@ public class FreeMarkerService {
      * @throws RejectedExecutionException
      *             If the service is overburden and thus doing the calculation was rejected.
      * @throws FreeMarkerServiceException
-     *             If the calculation fails from a reason that's not a mistake in the template and doesn't fit
-     *             the meaning of {@link RejectedExecutionException} either.
+     *             If the calculation fails from a reason that's not a mistake in the template and doesn't fit the
+     *             meaning of {@link RejectedExecutionException} either.
      */
     public FreeMarkerServiceResponse calculateTemplateOutput(
-            String templateSourceCode, Object dataModel) throws RejectedExecutionException {
+            String templateSourceCode, Object dataModel, OutputFormat outputFormat, Locale locale, TimeZone timeZone)
+            throws RejectedExecutionException {
         Objects.requireNonNull(templateExecutor, "templateExecutor was null - was postConstruct ever called?");
         
-        final CalculateTemplateOutput task = new CalculateTemplateOutput(templateSourceCode, dataModel);
+        final CalculateTemplateOutput task = new CalculateTemplateOutput(
+                templateSourceCode, dataModel, outputFormat, locale, timeZone);
         Future<FreeMarkerServiceResponse> future = templateExecutor.submit(task);
         
         synchronized (task) {
@@ -238,11 +255,18 @@ public class FreeMarkerService {
         private Thread templateExecutorThread;
         private final String templateSourceCode;
         private final Object dataModel;
+        private final OutputFormat outputFormat;
+        private final Locale locale;
+        private final TimeZone timeZone;
         private boolean taskEnded;
 
-        public CalculateTemplateOutput(String templateSourceCode, Object dataModel) {
+        private CalculateTemplateOutput(String templateSourceCode, Object dataModel,
+                OutputFormat outputFormat, Locale locale, TimeZone timeZone) {
             this.templateSourceCode = templateSourceCode;
             this.dataModel = dataModel;
+            this.outputFormat = outputFormat;
+            this.locale = locale;
+            this.timeZone = timeZone;
         }
         
         @Override
@@ -250,7 +274,22 @@ public class FreeMarkerService {
             try {
                 Template template;
                 try {
-                    template = new Template(null, templateSourceCode, freeMarkerConfig);
+                    TemplateConfiguration tCfg = new TemplateConfiguration();
+                    tCfg.setParentConfiguration(freeMarkerConfig);
+                    if (outputFormat != null) {
+                        tCfg.setOutputFormat(outputFormat);
+                    }
+                    if (locale != null) {
+                        tCfg.setLocale(locale);
+                    }
+                    if (timeZone != null) {
+                        tCfg.setTimeZone(timeZone);
+                    }
+                    
+                    template = new Template(null, null,
+                            new StringReader(templateSourceCode), freeMarkerConfig, tCfg, null);
+                    
+                    tCfg.apply(template);
                 } catch (ParseException e) {
                     // Expected (part of normal operation)
                     return createFailureResponse(e);
@@ -281,7 +320,7 @@ public class FreeMarkerService {
                 } catch (LengthLimitExceededException e) {
                     // Not really an error, we just cut the output here.
                     resultTruncated = true;
-                    writer.write(new MessageFormat(MAX_OUTPUT_LENGTH_EXCEEDED_TERMINATION, Locale.US)
+                    writer.write(new MessageFormat(MAX_OUTPUT_LENGTH_EXCEEDED_TERMINATION, AllowedSettingValuesMaps.DEFAULT_LOCALE)
                             .format(new Object[] { maxOutputLength }));
                     // Falls through
                 } catch (TemplateException e) {
@@ -307,18 +346,18 @@ public class FreeMarkerService {
             }
         }
         
-        public synchronized boolean isTemplateExecutionStarted() {
+        private synchronized boolean isTemplateExecutionStarted() {
             return templateExecutionStarted;
         }
 
-        public synchronized boolean isTaskEnded() {
+        private synchronized boolean isTaskEnded() {
             return taskEnded;
         }
         
         /**
          * @return non-{@code null} after the task execution has actually started, but before it has finished.
          */
-        public synchronized Thread getTemplateExecutorThread() {
+        private synchronized Thread getTemplateExecutorThread() {
             return templateExecutorThread;
         }
         

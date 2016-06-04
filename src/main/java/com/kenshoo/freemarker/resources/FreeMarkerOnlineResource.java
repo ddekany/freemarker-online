@@ -15,11 +15,6 @@
  */
 package com.kenshoo.freemarker.resources;
 
-import com.kenshoo.freemarker.view.FreeMarkerOnlineView;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -27,6 +22,10 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+
+import org.springframework.stereotype.Component;
+
+import com.kenshoo.freemarker.view.FreeMarkerOnlineView;
 
 /**
  * Created with IntelliJ IDEA.
@@ -48,12 +47,19 @@ public class FreeMarkerOnlineResource {
     @Produces(MediaType.TEXT_HTML)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public FreeMarkerOnlineView formResult(
-            @FormParam("template") String templateInput,
-            @FormParam("dataModel") String dataModelInput) {
-        if (StringUtils.isBlank(templateInput) && StringUtils.isBlank(dataModelInput)) {
-            return blankForm();
-        }
-        boolean execute = true;
-        return new FreeMarkerOnlineView(templateInput, dataModelInput, execute);
+            @FormParam("template") String template,
+            @FormParam("dataModel") String dataModel,
+            @FormParam("outputFormat") String outputFormat,
+            @FormParam("locale") String locale,
+            @FormParam("timeZone") String timeZone) {
+        FreeMarkerOnlineView view = new FreeMarkerOnlineView();
+        view.setTemplate(template);
+        view.setDataModel(dataModel);
+        view.setOutputFormat(outputFormat);
+        view.setLocale(locale);
+        view.setTimeZone(timeZone);
+        view.setExecute(true);
+        return view;
     }
+
 }

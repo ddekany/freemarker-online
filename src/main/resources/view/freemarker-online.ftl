@@ -1,4 +1,5 @@
-<#escape x as x?html>
+<#ftl outputFormat="HTML">
+<#import "utils.ftl" as u>
 <!DOCTYPE html>
 <html>
 <head>
@@ -47,6 +48,12 @@
         </div>
 
         <div class="content">
+            <!--[if lte IE 8]>
+            <div style="background-color: #C00; color: #fff; padding: 12px 24px;">
+              You seem to use Internet Explorer 8 or older. This page might won't work properly with that.
+            </div>
+            <![endif]-->
+          
             <form id="templateAndModelForm" method="post" class="pure-form pure-form-stacked">
                 <label for="template">Template <span class="faint">(Apache FreeMarker ${freeMarkerVersion})</span></label>
                 <textarea id="template" name="template" class="pure-input-1 source-code"
@@ -60,7 +67,12 @@
                     --><span id="hideDataModelExamplesLabel" class="hiddenByDefault">hide</span>
                     examples</a>)
                 </label>
-                <pre id="dataModelExamples" class="hiddenByDefault">someString = Some value
+                <div id="dataModelExamples" class="hiddenByDefault">
+                  <div class="description">
+                      Note: This syntax is specific to this online service; normally, you just have Java objects as
+                      data-model.
+                  </div>
+                  <pre>someString = Some value
 otherString = "JSON\nsyntax"
 someNumber = 3.14
 someBoolean = true
@@ -69,11 +81,21 @@ someTime = 20:50:30.5+02:00
 someDatetime = 2014-02-28T18:50Z
 someList = ["JSON", "syntax", 1, 2, 3 ]
 someMap = { "JSON syntax": true, "nestedList": [1, 2, 3] }
-someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
+someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre></div>
                 <textarea id="dataModel" name="dataModel" class="pure-input-1 source-code"
                         placeholder='Enter one or more assignments (e.g., user = John Doe), starting each in its own line.'
                 >${dataModel}</textarea>
-                <span id="error" class="errorMessage">Template cannot be empty</span>
+                <div class="formPanel">
+                  <div class="horizontalBox">
+                    <@u.htmlSelect caption="Output format" name="outputFormat" selectionOptions=outputFormats />
+                  </div>
+                  <div class="horizontalBox">
+                    <@u.htmlSelect caption="Locale" name="locale" selectionOptions=locales />
+                  </div>
+                  <div class="horizontalBox">
+                    <@u.htmlSelect caption="Time zone" name="timeZone" selectionOptions=timeZones />
+                  </div>
+                </div>
                 <div class="formBottomButtonsContainer">
 	                <input id="eval-btn" type="button" value="Evaluate" class="pure-button pure-button-primary"/>
 	                &nbsp; <span class="faint">Ctrl+Enter in input fields will submit this form too</span>
@@ -105,4 +127,3 @@ someXML = &lt;example x="1"&gt;text&lt;/example&gt;</pre>
 </div><!-- layout -->
 </body>
 </html>
-</#escape>

@@ -17,71 +17,81 @@
 /**
  * Created by Pmuruge on 8/28/2015.
  */
-$( document).ready(function(){
-    $("#eval-btn").click(function(){
+$(document).ready(function() {
+    $("#eval-btn").click(function() {
         execute();
     });
-    $('#templateAndModelForm textarea').keydown(function (e) {
+    $('#templateAndModelForm textarea, #templateAndModelForm select').keydown(function (e) {
         if ((e.keyCode == 10 || e.keyCode == 13) && e.ctrlKey) {
             execute();
         }
     });
+    $.blockUI.defaults.fadeIn = 1000;
+    $.blockUI.defaults.fadeOut = 0;
 });
 
-    var execute = function() {
-        $.blockUI({ message: null });
-        if(validForm()) {
+var hasPendingExecuteAjaxCall = false;
+
+function execute() {
+    if (hasPendingExecuteAjaxCall || !checkFormSendable()) {
+        return;
+    }
+    
+    var request = {
+        "template": $("#template").val(),
+        "dataModel": $("#dataModel").val(),
+        "outputFormat": $("#outputFormat").val(),
+        "locale": $("#locale").val(),
+        "timeZone": $("#timeZone").val()
+    }
+
+    $.ajax({
+        method: "POST",
+        url: "/api/execute",
+        data: JSON.stringify(request),
+        headers: { "Content-Type":"application/json" },
+        beforeSend: function (jqXHR, options) {
+            hasPendingExecuteAjaxCall = true;
+            $.blockUI({ message: null });
             $("#error").hide();
-            var payload = {
-                "template": $("#template").val(),
-                "dataModel": $("#dataModel").val()
-            }
-            $.ajax({
-                method: "POST",
-                url: "/api/execute",
-                data: JSON.stringify(payload),
-                headers: {
-                    "Content-Type":"application/json"
-                }
-            })
-                .done(function( data ) {
-                    if(data.problems) {
-                        var error = data.problems.dataModel ? data.problems.dataModel : data.problems.template;
-                        $("#result").addClass("error");
-                        $("#result").val(error);
-                    }
-                    else {
-                        $("#result").removeClass("error");
-                        $("#result").val(data.result);
-                    }
-                })
-                .fail(function(data){
-                    $("#result").val(data.responseJSON.errorCode + ": " + data.responseJSON.errorDescription);
-                    $("#result").addClass("error");
-                }).always(function(data){
-                    $(".resultContainer").show();
-                    autosize.update($("#result"));
-                });
+            return true;
+        }    
+    })
+    .done(function (data) {
+        if (data.problems && data.problems.length != 0) {
+            showResult(data.problems[0].message, true);              
+        } else {
+            showResult(data.result, false);              
         }
-        else {
-            $.unblockUI();
+    })
+    .fail(function (data) {
+        if (data.responseJSON) {
+            showResult(data.responseJSON.errorCode + ": " + data.responseJSON.errorDescription, true);              
+        } else {
+            showResult("The service was unavailable or had returned an invalid response.", true);              
         }
-    };
-    var validForm = function() {
-        var error = true;
-        if($("#template").val().trim() === "" ) {
-            $("#error").show();
-            error = false;
-        }
-        return error;
-    };
-
-    $( document ).ajaxStart(function() {
-        $("#eval-btn").attr("disabled","true");
-    });
-
-    $( document ).ajaxStop(function() {
+    })
+    .always(function (data) {
+        hasPendingExecuteAjaxCall = false;
         $.unblockUI();
-        $("#eval-btn").removeAttr("disabled");
     });
+}
 
+function checkFormSendable() {
+    if($.trim($("#template").val()) === "" ) {
+        showResult("Template was empty; nothing to do.", true);
+        return false;
+    }
+    return true;
+}
+
+function showResult(result, isError) {
+    if (isError) {
+        $("#result").addClass("error");
+    } else {
+        $("#result").removeClass("error");
+    }
+    $("#result").val(result);
+    $(".resultContainer").show();
+    autosize.update($("#result"));
+}

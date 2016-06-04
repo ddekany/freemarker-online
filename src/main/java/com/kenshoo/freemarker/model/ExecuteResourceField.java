@@ -21,27 +21,36 @@ import com.fasterxml.jackson.annotation.JsonValue;
 /**
  * Created by Pmuruge on 8/31/2015.
  */
-public enum ExecuteResourceErrorFields {
-    DATA_MODEL {
-        public String toString() {
-            return "dataModel";
-        }
-    },
-    TEMPLATE {
-        public String toString() {
-            return "template";
-        }
-    };
+public enum ExecuteResourceField {
+    DATA_MODEL("dataModel"),
+    TEMPLATE("template"),
+    OUTPUT_FORMAT("outputFormat"),
+    LOCALE("locale"),
+    TIME_ZONE("timeZone");
+    
+    private final String fieldName;
+    
+    private ExecuteResourceField(String filedName) {
+        this.fieldName = filedName;
+    }
+    
+    public String toString() {
+        return getFieldName();
+    }
+    
+    @JsonValue
+    public String getFieldName() {
+        return fieldName;
+    }
 
     @JsonCreator
-    public static ExecuteResourceErrorFields fromEnumString(String val) {
-        for(ExecuteResourceErrorFields field : values()) {
-            System.out.println("Checking the value for the field  " + field.toString() + " with the value " + val);
-            if(field.toString().equals(val)) {
-                System.out.println("Returning the value of " + field);
+    public static ExecuteResourceField fromEnumString(String val) {
+        for(ExecuteResourceField field : values()) {
+            if(field.getFieldName().equals(val)) {
                 return field;
             }
         }
-        throw new IllegalArgumentException("invalid string value passed: " + val);
+        throw new IllegalArgumentException("Invalid string value passed: " + val);
     }
+    
 }

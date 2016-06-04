@@ -44,11 +44,13 @@ public class YamlPropertiesPersister implements PropertiesPersister {
     @Override
     public void load(Properties props, Reader reader) throws IOException {
         Yaml yaml = new Yaml();
+        @SuppressWarnings("unchecked")
         Map<String, Object> map = (Map<String, Object>) yaml.load(reader);
         // now we can populate supplied props
         assignProperties(props, map, null);
     }
 
+    @SuppressWarnings("unchecked")
     public void assignProperties(Properties props, Map<String, Object> map, String path) {
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();

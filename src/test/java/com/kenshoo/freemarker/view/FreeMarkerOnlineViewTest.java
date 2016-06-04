@@ -15,10 +15,16 @@
  */
 package com.kenshoo.freemarker.view;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.junit.Test;
+
+import com.kenshoo.freemarker.services.AllowedSettingValuesMaps;
+
+import freemarker.core.HTMLOutputFormat;
 
 /**
  * Created with IntelliJ IDEA.
@@ -36,14 +42,29 @@ public class FreeMarkerOnlineViewTest {
         FreeMarkerOnlineView view = new FreeMarkerOnlineView();
         assertEquals(view.getTemplate(), "");
         assertEquals(view.getDataModel(), "");
+        assertEquals(view.getOutputFormat(), AllowedSettingValuesMaps.DEFAULT_OUTPUT_FORMAT_KEY);
+        assertEquals(view.getLocale(), AllowedSettingValuesMaps.DEFAULT_LOCALE_KEY);
+        assertEquals(view.getTimeZone(), AllowedSettingValuesMaps.DEFAULT_TIME_ZONE_KEY);
     }
 
     @Test
     public void testViewWhenAllOK() {
-        boolean execute = false;
-        FreeMarkerOnlineView view = new FreeMarkerOnlineView(TEMPLATE, DATA_MODEL, execute );
+        FreeMarkerOnlineView view = new FreeMarkerOnlineView();
+        
+        view.setTemplate(TEMPLATE);
+        view.setDataModel(DATA_MODEL);
+        String outputFormatStr = HTMLOutputFormat.INSTANCE.getName();
+        view.setOutputFormat(outputFormatStr);
+        String localeStr = Locale.GERMAN.toString();
+        view.setLocale(localeStr);
+        String timeZoneStr = TimeZone.getTimeZone("GMT+01").getID();
+        view.setTimeZone(timeZoneStr);
+        
         assertEquals(view.getTemplate(), TEMPLATE);
         assertEquals(view.getDataModel(), DATA_MODEL);
+        assertEquals(view.getOutputFormat(), outputFormatStr);
+        assertEquals(view.getLocale(), localeStr);
+        assertEquals(view.getTimeZone(), timeZoneStr);
     }
     
 }

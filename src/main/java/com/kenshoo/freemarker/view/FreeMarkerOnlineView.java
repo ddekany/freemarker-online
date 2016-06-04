@@ -16,9 +16,16 @@
 package com.kenshoo.freemarker.view;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import org.springframework.util.Assert;
+import org.apache.commons.lang3.StringUtils;
 
+import com.kenshoo.freemarker.model.SelectionOption;
+import com.kenshoo.freemarker.services.AllowedSettingValuesMaps;
 import com.yammer.dropwizard.views.View;
 
 import freemarker.template.Configuration;
@@ -28,13 +35,45 @@ import freemarker.template.Configuration;
  */
 public class FreeMarkerOnlineView extends View {
 
-    private final String template;
-    private final String dataModel;
-    private final boolean execute;
-
-    public FreeMarkerOnlineView() {
-        this( "", "", false);
+    private static final List<SelectionOption> LOCALE_SELECTION_OPTIONS = toLocaleSelectionOptions(AllowedSettingValuesMaps.LOCALE_MAP);
+    private static final List<SelectionOption> TIME_ZONE_SELECTION_OPTIONS = toSelectionOptions(AllowedSettingValuesMaps.TIME_ZONE_MAP);
+    private static final List<SelectionOption> OUTPUT_FORMAT_SELECTION_OPTIONS = toSelectionOptions(AllowedSettingValuesMaps.OUTPUT_FORMAT_MAP);
+    
+    private String template = "";
+    private String dataModel = "";
+    private String outputFormat = AllowedSettingValuesMaps.DEFAULT_OUTPUT_FORMAT_KEY;
+    private String locale = AllowedSettingValuesMaps.DEFAULT_LOCALE_KEY;
+    private String timeZone = AllowedSettingValuesMaps.DEFAULT_TIME_ZONE_KEY;
+    
+    private boolean execute;
+    
+    private static List<SelectionOption> toSelectionOptions(Map<String, ?> settingValueMap) {
+        ArrayList<SelectionOption> selectionOptions = new ArrayList<SelectionOption>(settingValueMap.size());
+        for (String key : settingValueMap.keySet()) {
+            selectionOptions.add(new SelectionOption(key, truncate(key, 25)));
+        }
+        Collections.sort(selectionOptions);
+        return selectionOptions;
     }
+    
+    private static List<SelectionOption> toLocaleSelectionOptions(Map<String, Locale> localeMap) {
+        ArrayList<SelectionOption> selectionOptions = new ArrayList<SelectionOption>(localeMap.size());
+        for (Map.Entry<String, Locale> ent : localeMap.entrySet()) {
+            Locale locale = ent.getValue();
+            selectionOptions.add(
+                    new SelectionOption(ent.getKey(),
+                    truncate(locale.getDisplayName(Locale.US), 18) + "; " + locale.toString()));
+        }
+        Collections.sort(selectionOptions);
+        return selectionOptions;
+    }
+    
+    private static String truncate(String s, int maxLength) {
+        if (s == null) {
+            return null;
+        }
+        return s.length() <= maxLength ? s : s.substring(0, Math.max(maxLength - 3, 0)) + "[...]";
+    }    
 
     /**
      *
@@ -42,24 +81,76 @@ public class FreeMarkerOnlineView extends View {
      * @param dataModel
      * @param execute set to true if the execution should be triggered on page load.
      */
-    public  FreeMarkerOnlineView(String template, String dataModel, boolean execute) {
+    public FreeMarkerOnlineView() {
         super("/view/freemarker-online.ftl", Charset.forName("utf-8"));
-        this.template = template;
-        this.dataModel = dataModel;
-        this.execute = execute;
     }
 
     public String getTemplate() {
         return template;
     }
 
+    public void setTemplate(String template) {
+        this.template = withDefault(template, "");
+    }
+
     public String getDataModel() {
         return dataModel;
     }
 
-    public boolean isExecute() { return this.execute; }
+    public void setDataModel(String dataModel) {
+        this.dataModel = withDefault(dataModel, "");
+    }
 
     public String getFreeMarkerVersion() {
         return Configuration.getVersion().toString();
     }
+    
+    public List<SelectionOption> getOutputFormats() {
+        return OUTPUT_FORMAT_SELECTION_OPTIONS;
+    }
+
+    public List<SelectionOption> getLocales() {
+        return LOCALE_SELECTION_OPTIONS;
+    }
+
+    public List<SelectionOption> getTimeZones() {
+        return TIME_ZONE_SELECTION_OPTIONS;
+    }
+
+    public String getOutputFormat() {
+        return outputFormat;
+    }
+
+    public void setOutputFormat(String outputFormat) {
+        this.outputFormat = withDefault(outputFormat, AllowedSettingValuesMaps.DEFAULT_OUTPUT_FORMAT_KEY);
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = withDefault(locale, AllowedSettingValuesMaps.DEFAULT_LOCALE_KEY);
+    }
+
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = withDefault(timeZone, AllowedSettingValuesMaps.DEFAULT_TIME_ZONE_KEY);
+    }
+    
+    public boolean isExecute() {
+        return execute;
+    }
+
+    public void setExecute(boolean executeImmediately) {
+        this.execute = executeImmediately;
+    }
+
+    private static String withDefault(String value, String defaultValue) {
+        return !StringUtils.isBlank(value) ? value : defaultValue;
+    }
+    
 }
